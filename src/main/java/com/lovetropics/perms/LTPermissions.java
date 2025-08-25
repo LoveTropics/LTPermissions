@@ -65,6 +65,7 @@ public class LTPermissions {
 
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
+    public static final RoleOverrideType<Boolean> BYPASS_WHITELIST = RoleOverrideType.register("bypass_whitelist", Codec.BOOL);
 
     private static final RoleLookup LOOKUP = new RoleLookup() {
         @Override
