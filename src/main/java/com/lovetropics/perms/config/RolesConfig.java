@@ -19,10 +19,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.StrictJsonParser;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
@@ -60,8 +61,8 @@ public final class RolesConfig implements RoleProvider {
     }
 
     @SubscribeEvent
-    public static void onAddReloadListeners(AddReloadListenerEvent event) {
-        event.addListener(new SimplePreparableReloadListener<LoadResult>() {
+    public static void onAddReloadListeners(AddServerReloadListenersEvent event) {
+        event.addListener(LTPermissions.location("roles"), new SimplePreparableReloadListener<LoadResult>() {
             @Override
             protected LoadResult prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
                 return load(resourceManager);
@@ -88,7 +89,7 @@ public final class RolesConfig implements RoleProvider {
     }
 
     private static LoadResult load(ResourceManager resourceManager) {
-        Optional<Resource> resource = resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(LTPermissions.ID, "roles.json"));
+        Optional<Resource> resource = resourceManager.getResource(LTPermissions.location("roles.json"));
         if (resource.isEmpty()) {
             return new LoadResult(DEFAULT_CONFIG, List.of("Found no roles config"));
         }
@@ -100,7 +101,7 @@ public final class RolesConfig implements RoleProvider {
         };
 
         try (BufferedReader reader = resource.get().openAsReader()) {
-            JsonElement root = JsonParser.parseReader(reader);
+            JsonElement root = StrictJsonParser.parse(reader);
             RolesConfig config = parse(new Dynamic<>(JsonOps.INSTANCE, root), errorConsumer);
             return new LoadResult(config, errors);
         } catch (IOException e) {

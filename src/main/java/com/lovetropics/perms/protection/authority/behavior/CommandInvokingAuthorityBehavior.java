@@ -33,7 +33,7 @@ public final class CommandInvokingAuthorityBehavior implements AuthorityBehavior
         }
 
         CommandSourceStack source = this.getSource(player);
-        Commands commandManager = player.server.getCommands();
+        Commands commandManager = player.getServer().getCommands();
         for (String command : commands) {
             commandManager.performPrefixedCommand(source, command);
         }

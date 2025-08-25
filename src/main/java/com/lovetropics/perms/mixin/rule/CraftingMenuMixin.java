@@ -1,6 +1,7 @@
 package com.lovetropics.perms.mixin.rule;
 
 import com.lovetropics.perms.protection.ProtectionEventDispatcher;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -22,7 +23,7 @@ public class CraftingMenuMixin {
     @Inject(at = @At("HEAD"), method = "slotChangedCraftingGrid", cancellable = true)
     private static void respectCraftingPermission(
             AbstractContainerMenu menu,
-            Level level,
+            ServerLevel level,
             Player player,
             CraftingContainer craftSlots,
             ResultContainer resultSlots,

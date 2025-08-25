@@ -109,7 +109,7 @@ public final class PlayerRoleSet implements RoleReader {
         this.roles.clear();
 
         for (int i = 0; i < list.size(); i++) {
-            String name = list.getString(i);
+            String name = list.getStringOr(i, "");
             Role role = roleProvider.get(name);
             if (role == null || name.equalsIgnoreCase(Role.EVERYONE)) {
                 this.dirty = true;

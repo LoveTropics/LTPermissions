@@ -1,5 +1,6 @@
 package com.lovetropics.perms.protection;
 
+import com.google.common.collect.Lists;
 import com.lovetropics.lib.permission.PermissionResult;
 import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.protection.authority.Authority;
@@ -10,9 +11,9 @@ import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehav
 import com.lovetropics.perms.protection.authority.map.AuthorityMap;
 import com.lovetropics.perms.protection.authority.map.IndexedAuthorityMap;
 import com.lovetropics.perms.protection.authority.map.SortedAuthorityHashMap;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -23,11 +24,11 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -37,14 +38,16 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
 public final class ProtectionManager extends SavedData {
     private static final String KEY = "protection";
-    private static final Factory<ProtectionManager> FACTORY = new Factory<>(
+    private static final SavedDataType<ProtectionManager> TYPE = new SavedDataType<>(
+            KEY,
             ProtectionManager::new,
-            (root, registries) -> ProtectionManager.read(root)
+            Packed.CODEC.xmap(ProtectionManager::new, ProtectionManager::asPacked)
     );
 
     private final SortedAuthorityHashMap<UserAuthority> userAuthorities = new SortedAuthorityHashMap<>();
@@ -57,8 +60,28 @@ public final class ProtectionManager extends SavedData {
         this.allAuthorities.add(this.builtinUniverse);
     }
 
+    private ProtectionManager(Packed packed) {
+        this();
+        packed.authorities.forEach(this::addAuthority);
+        packed.builtin.dimensions.forEach(this::addBuiltinDimension);
+        addBuiltinUniverse(packed.builtin.universe);
+        invalidateBehaviors();
+    }
+
+    private Packed asPacked() {
+        return new Packed(
+                Lists.newArrayList(userAuthorities),
+                new Packed.Builtin(
+                        builtinDimensions.entrySet().stream()
+                                .filter(entry -> !entry.getValue().isEmpty())
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                        builtinUniverse
+                )
+        );
+    }
+
     public static ProtectionManager get(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, KEY);
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     public PermissionResult test(EventSource source, ProtectionRule rule) {
@@ -230,83 +253,24 @@ public final class ProtectionManager extends SavedData {
         return this.userAuthorities.stream();
     }
 
-    @Override
-    public CompoundTag save(CompoundTag root, HolderLookup.Provider registries) {
-        ListTag authorityList = new ListTag();
+    private record Packed(
+            List<UserAuthority> authorities,
+            Builtin builtin
+    ) {
+        public static final Codec<Packed> CODEC = RecordCodecBuilder.create(i -> i.group(
+                UserAuthority.CODEC.listOf().fieldOf("authorities").forGetter(Packed::authorities),
+                Builtin.CODEC.fieldOf("builtin").forGetter(Packed::builtin)
+        ).apply(i, Packed::new));
 
-        for (UserAuthority authority : this.userAuthorities) {
-            DataResult<Tag> result = UserAuthority.CODEC.encodeStart(NbtOps.INSTANCE, authority);
-            result.result().ifPresent(authorityList::add);
+        private record Builtin(
+                Map<ResourceKey<Level>, BuiltinAuthority> dimensions,
+                BuiltinAuthority universe
+        ) {
+            public static final Codec<Builtin> CODEC = RecordCodecBuilder.create(i -> i.group(
+                    Codec.dispatchedMap(ResourceKey.codec(Registries.DIMENSION), BuiltinAuthority::dimensionCodec).optionalFieldOf("dimensions", Map.of()).forGetter(Builtin::dimensions),
+                    BuiltinAuthority.universeCodec().fieldOf("universe").forGetter(Builtin::universe)
+            ).apply(i, Builtin::new));
         }
-
-        root.put("authorities", authorityList);
-
-        root.put("builtin", this.writeBuiltin(new CompoundTag()));
-
-        return root;
-    }
-
-    private CompoundTag writeBuiltin(CompoundTag root) {
-        CompoundTag dimensionsTag = new CompoundTag();
-
-        for (Map.Entry<ResourceKey<Level>, BuiltinAuthority> entry : this.builtinDimensions.entrySet()) {
-            ResourceKey<Level> dimension = entry.getKey();
-            BuiltinAuthority authority = entry.getValue();
-            if (authority.isEmpty()) continue;
-
-            Codec<BuiltinAuthority> codec = BuiltinAuthority.dimensionCodec(dimension);
-            codec.encodeStart(NbtOps.INSTANCE, authority)
-                    .result().ifPresent(nbt -> {
-                        dimensionsTag.put(dimension.location().toString(), nbt);
-                    });
-        }
-
-        root.put("dimensions", dimensionsTag);
-
-        BuiltinAuthority.universeCodec().encodeStart(NbtOps.INSTANCE, this.builtinUniverse)
-                .result().ifPresent(nbt -> {
-                    root.put("universe", nbt);
-                });
-
-        return root;
-    }
-
-    public static ProtectionManager read(CompoundTag root) {
-        final ProtectionManager manager = new ProtectionManager();
-
-        ListTag authoritiesList = root.getList("authorities", Tag.TAG_COMPOUND);
-
-        for (Tag authorityTag : authoritiesList) {
-            UserAuthority.CODEC.decode(NbtOps.INSTANCE, authorityTag)
-                    .map(Pair::getFirst)
-                    .result()
-                    .ifPresent(manager::addAuthority);
-        }
-
-        manager.readBuiltin(root.getCompound("builtin"));
-
-        manager.invalidateBehaviors();
-
-        return manager;
-    }
-
-    private void readBuiltin(CompoundTag root) {
-        CompoundTag dimensionsTag = root.getCompound("dimensions");
-        for (String dimensionKey : dimensionsTag.getAllKeys()) {
-            ResourceKey<Level> dimension = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimensionKey));
-
-            Codec<BuiltinAuthority> codec = BuiltinAuthority.dimensionCodec(dimension);
-            codec.decode(NbtOps.INSTANCE, dimensionsTag.getCompound(dimensionKey))
-                    .map(Pair::getFirst)
-                    .result()
-                    .ifPresent(authority -> this.addBuiltinDimension(dimension, authority));
-        }
-
-        Tag universeTag = root.get("universe");
-        BuiltinAuthority.universeCodec().decode(NbtOps.INSTANCE, universeTag)
-                .map(Pair::getFirst)
-                .result()
-                .ifPresent(this::addBuiltinUniverse);
     }
 
     private void addBuiltinDimension(ResourceKey<Level> dimension, BuiltinAuthority authority) {

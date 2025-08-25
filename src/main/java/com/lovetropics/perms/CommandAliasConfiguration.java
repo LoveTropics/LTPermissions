@@ -7,6 +7,7 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.StrictJsonParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,12 +36,12 @@ public record CommandAliasConfiguration(Map<String, String[]> aliases) {
             LTPermissions.LOGGER.error("Resources not available, not loading command aliases");
             return CommandAliasConfiguration.EMPTY;
         }
-        Optional<Resource> resource = resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(LTPermissions.ID, "command_aliases.json"));
+        Optional<Resource> resource = resourceManager.getResource(LTPermissions.location("command_aliases.json"));
         if (resource.isEmpty()) {
             return CommandAliasConfiguration.EMPTY;
         }
         try (BufferedReader reader = resource.get().openAsReader()) {
-            return CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader))
+            return CODEC.parse(JsonOps.INSTANCE, StrictJsonParser.parse(reader))
                     .resultOrPartial(error -> LTPermissions.LOGGER.warn("Malformed command aliases configuration: {}", error))
                     .orElse(EMPTY);
         } catch (IOException e) {

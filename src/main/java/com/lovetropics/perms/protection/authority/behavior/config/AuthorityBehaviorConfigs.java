@@ -12,9 +12,10 @@ import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.StrictJsonParser;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -34,8 +35,8 @@ public final class AuthorityBehaviorConfigs {
     private static final AtomicBoolean RELOADED = new AtomicBoolean();
 
     @SubscribeEvent
-    public static void addReloadListener(AddReloadListenerEvent event) {
-        event.addListener((stage, resourceManager, preparationsProfiler, reloadProfiler, backgroundExecutor, gameExecutor) ->
+    public static void addReloadListener(AddServerReloadListenersEvent event) {
+        event.addListener(LTPermissions.location("authority_behaviors"), (stage, resourceManager, backgroundExecutor, gameExecutor) ->
                 CompletableFuture.supplyAsync(() -> load(resourceManager), backgroundExecutor)
                         .thenCompose(stage::wait)
                         .thenAcceptAsync(configs -> {
@@ -66,7 +67,7 @@ public final class AuthorityBehaviorConfigs {
 
     private static DataResult<AuthorityBehaviorConfig> loadConfig(Resource resource) throws IOException {
         try (BufferedReader reader = resource.openAsReader()) {
-            JsonElement json = JsonParser.parseReader(reader);
+            JsonElement json = StrictJsonParser.parse(reader);
             return AuthorityBehaviorConfig.CODEC.parse(JsonOps.INSTANCE, json);
         }
     }

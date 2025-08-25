@@ -75,7 +75,7 @@ public final class PlayerRoleDatabase implements Closeable {
 
         try (ByteArrayInputStream input = new ByteArrayInputStream(bytes.array())) {
             CompoundTag nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
-            roles.deserialize(config, nbt.getList("roles", Tag.TAG_STRING));
+            roles.deserialize(config, nbt.getListOrEmpty("roles"));
         }
     }
 

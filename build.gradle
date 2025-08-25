@@ -1,17 +1,15 @@
 plugins {
-  id 'java-library'
-  id 'eclipse'
-  id 'idea'
-  id 'maven-publish'
-  id 'net.neoforged.moddev' version '1.0.8'
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.103'
 }
-
 
 group = mod_group_id
 base {
-  archivesName = mod_id
+    archivesName = mod_id
 }
-
 
 ext.buildnumber = 0
 version = "${mod_version}"
@@ -21,80 +19,75 @@ if (System.getenv('GITHUB_RUN_NUMBER')) {
     version = "${mod_version}+${buildnumber}-gha"
 }
 
+neoForge {
+    version = project.neo_version
 
-repositories {
-  maven { url "https://maven.enginehub.org/repo/" }
-  maven { url "https://maven.tterrag.com/" }
-  mavenLocal()
+    parchment {
+        minecraftVersion = project.minecraft_version
+        mappingsVersion = project.parchment_version
+    }
+
+    runs {
+        configureEach {
+            logLevel = org.slf4j.event.Level.WARN
+            gameDirectory = project.file('run')
+        }
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+        data {
+            clientData()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
 }
 
+repositories {
+    maven {
+        url = 'https://maven.enginehub.org/repo'
+        content {
+            includeGroupAndSubgroups 'com.sk89q'
+            includeGroupAndSubgroups 'org.enginehub'
+        }
+    }
+    maven {
+        url = 'https://maven.gegy.dev/releases'
+        content {
+            includeGroup 'org.lovetropics'
+        }
+    }
+    mavenLocal()
+}
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-
 dependencies {
+    jarJar(implementation("org.lovetropics:LTLib:$ltlib_version"))
 
-  jarJar(implementation("com.lovetropics.lib:LTLib:$ltlib_version"))
-
-  additionalRuntimeClasspath(implementation("com.sk89q.worldedit:worldedit-core:$worldedit_version")) {
-    exclude group: "com.google.guava"
-    exclude group: "com.google.code.gson"
-    exclude group: "it.unimi.dsi"
-    exclude group: "org.apache.logging.log4j"
-    exclude group: "org.antlr"
-  }
-  
-  implementation("com.sk89q.worldedit:worldedit-neoforge-mc$minecraft_version:$worldedit_version")  {
-    exclude group: "com.google.guava"
-  }
-
+    implementation("com.sk89q.worldedit:worldedit-neoforge-mc$minecraft_version:$worldedit_version") {
+        exclude group: "com.google.guava"
+        exclude group: "org.mozilla"
+    }
 }
-
-
-neoForge {
-  version = project.neo_version
-
-  parchment {
-    minecraftVersion = project.minecraft_version
-    mappingsVersion = project.parchment_version
-  }
-
-  runs {
-    configureEach {
-      logLevel = org.slf4j.event.Level.INFO
-      gameDirectory = project.file('run')
-    }
-    client {
-      client()
-    }
-    server {
-      server()
-    }
-    data {
-      data()
-      programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-    }
-  }
-
-  mods {
-    "${mod_id}" {
-      sourceSet sourceSets.main
-    }
-  }
-
-}
-
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-
-tasks.withType(ProcessResources).configureEach {
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
     var replaceProperties = [
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             neo_version_range      : neo_version_range,
-            fml_version_range      : fml_version_range,
+            loader_version_range   : loader_version_range,
             worldedit_version_range: worldedit_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
@@ -104,17 +97,17 @@ tasks.withType(ProcessResources).configureEach {
             mod_description        : mod_description
     ]
     inputs.properties replaceProperties
-
-    filesMatching(['META-INF/neoforge.mods.toml']) {
-        expand replaceProperties
-    }
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
 }
+sourceSets.main.resources.srcDir generateModMetadata
 
+neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
-  options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
 }
-
 
 idea {
     module {

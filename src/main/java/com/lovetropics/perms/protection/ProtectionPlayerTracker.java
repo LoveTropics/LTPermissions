@@ -92,7 +92,7 @@ public final class ProtectionPlayerTracker {
 
     // TODO: Create an index of regions in the world such that we can know that within a given area, behaviors will never change, and search domain can be smaller
     private void updateTracker(final ServerPlayer player, final Tracker tracker) {
-        final ProtectionManager protection = ProtectionManager.get(player.server);
+        final ProtectionManager protection = ProtectionManager.get(player.getServer());
         tracker.lastBlockPos = player.blockPosition().asLong();
 
         try {
