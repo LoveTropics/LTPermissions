@@ -1,5 +1,6 @@
 package com.lovetropics.perms.command;
 
+import com.lovetropics.perms.LTPermissions;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -7,11 +8,19 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Abilities;
+import net.neoforged.neoforge.common.NeoForgeMod;
 
 import static net.minecraft.commands.Commands.literal;
 
 public class FlyCommand {
+    private static final AttributeModifier FLIGHT_MODIFIER = new AttributeModifier(
+            LTPermissions.location("flight"),
+            1.0,
+            AttributeModifier.Operation.ADD_VALUE
+    );
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(literal("fly")
@@ -23,7 +32,7 @@ public class FlyCommand {
 
 	private static int toggleFlight(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		ServerPlayer player = ctx.getSource().getPlayerOrException();
-		setFlight(player, !player.getAbilities().mayfly);
+		setFlight(player, !player.getAttributes().hasModifier(NeoForgeMod.CREATIVE_FLIGHT, FLIGHT_MODIFIER.id()));
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -35,8 +44,13 @@ public class FlyCommand {
 
 	private static void setFlight(final ServerPlayer player, final boolean canFly) {
 		Abilities abilities = player.getAbilities();
-		abilities.mayfly = canFly || player.isCreative() || player.isSpectator();
-		abilities.flying &= abilities.mayfly;
+        AttributeInstance instance = player.getAttributes().getInstance(NeoForgeMod.CREATIVE_FLIGHT);
+        if (canFly) {
+            instance.addPermanentModifier(FLIGHT_MODIFIER);
+        } else {
+            instance.removeModifier(FLIGHT_MODIFIER);
+        }
+		abilities.flying &= player.mayFly();
 		player.onUpdateAbilities();
 	}
 }
