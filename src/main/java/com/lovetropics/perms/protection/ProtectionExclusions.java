@@ -43,7 +43,9 @@ public final class ProtectionExclusions implements EventFilter {
     }
 
     public ProtectionExclusions addRole(Role role) {
-        if (this.roles.contains(role.id())) return this;
+        if (this.roles.contains(role.id())) {
+            return this;
+        }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
         result.roles.add(role.id());
@@ -51,7 +53,9 @@ public final class ProtectionExclusions implements EventFilter {
     }
 
     public ProtectionExclusions removeRole(Role role) {
-        if (!this.roles.contains(role.id())) return this;
+        if (!this.roles.contains(role.id())) {
+            return this;
+        }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
         result.roles.remove(role.id());
@@ -59,7 +63,9 @@ public final class ProtectionExclusions implements EventFilter {
     }
 
     public ProtectionExclusions addPlayer(GameProfile profile) {
-        if (this.players.contains(profile.getId())) return this;
+        if (this.players.contains(profile.getId())) {
+            return this;
+        }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
         result.players.add(profile.getId());
@@ -67,7 +73,9 @@ public final class ProtectionExclusions implements EventFilter {
     }
 
     public ProtectionExclusions removePlayer(GameProfile profile) {
-        if (!this.players.contains(profile.getId())) return this;
+        if (!this.players.contains(profile.getId())) {
+            return this;
+        }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
         result.players.remove(profile.getId());
@@ -75,7 +83,9 @@ public final class ProtectionExclusions implements EventFilter {
     }
 
     public ProtectionExclusions withOperators(boolean operators) {
-        if (this.operators == operators) return this;
+        if (this.operators == operators) {
+            return this;
+        }
 
         return new ProtectionExclusions(this.roles, this.players, operators);
     }

@@ -22,35 +22,35 @@ public class FlyCommand {
             AttributeModifier.Operation.ADD_VALUE
     );
 
-	public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-		dispatcher.register(literal("fly")
-				.requires(ctx -> ctx.hasPermission(Commands.LEVEL_GAMEMASTERS))
-				.then(literal("enable").executes(context -> setFlight(context, true)))
-				.then(literal("disable").executes(context -> setFlight(context, false)))
-				.executes(FlyCommand::toggleFlight));
-	}
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(literal("fly")
+                .requires(ctx -> ctx.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .then(literal("enable").executes(context -> setFlight(context, true)))
+                .then(literal("disable").executes(context -> setFlight(context, false)))
+                .executes(FlyCommand::toggleFlight));
+    }
 
-	private static int toggleFlight(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-		ServerPlayer player = ctx.getSource().getPlayerOrException();
-		setFlight(player, !player.getAttributes().hasModifier(NeoForgeMod.CREATIVE_FLIGHT, FLIGHT_MODIFIER.id()));
-		return Command.SINGLE_SUCCESS;
-	}
+    private static int toggleFlight(final CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        setFlight(player, !player.getAttributes().hasModifier(NeoForgeMod.CREATIVE_FLIGHT, FLIGHT_MODIFIER.id()));
+        return Command.SINGLE_SUCCESS;
+    }
 
-	private static int setFlight(CommandContext<CommandSourceStack> context, boolean canFly) throws CommandSyntaxException {
-		ServerPlayer player = context.getSource().getPlayerOrException();
-		setFlight(player, canFly);
-		return Command.SINGLE_SUCCESS;
-	}
+    private static int setFlight(CommandContext<CommandSourceStack> context, boolean canFly) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        setFlight(player, canFly);
+        return Command.SINGLE_SUCCESS;
+    }
 
-	private static void setFlight(final ServerPlayer player, final boolean canFly) {
-		Abilities abilities = player.getAbilities();
+    private static void setFlight(final ServerPlayer player, final boolean canFly) {
+        Abilities abilities = player.getAbilities();
         AttributeInstance instance = player.getAttributes().getInstance(NeoForgeMod.CREATIVE_FLIGHT);
         if (canFly) {
             instance.addPermanentModifier(FLIGHT_MODIFIER);
         } else {
             instance.removeModifier(FLIGHT_MODIFIER);
         }
-		abilities.flying &= player.mayFly();
-		player.onUpdateAbilities();
-	}
+        abilities.flying &= player.mayFly();
+        player.onUpdateAbilities();
+    }
 }

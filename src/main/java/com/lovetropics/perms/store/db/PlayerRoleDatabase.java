@@ -6,7 +6,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;

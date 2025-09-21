@@ -75,13 +75,17 @@ public final class BuiltinAuthority implements Authority {
 
     @Override
     public BuiltinAuthority withExclusions(ProtectionExclusions exclusions) {
-        if (this.exclusions == exclusions) return this;
+        if (this.exclusions == exclusions) {
+            return this;
+        }
         return new BuiltinAuthority(this.key, this.level, this.filter, this.rules, exclusions, this.behavior);
     }
 
     @Override
     public Authority withBehavior(AuthorityBehaviorMap behavior) {
-        if (this.behavior == behavior) return this;
+        if (this.behavior == behavior) {
+            return this;
+        }
         return new BuiltinAuthority(this.key, this.level, this.filter, this.rules, this.exclusions, behavior);
     }
 

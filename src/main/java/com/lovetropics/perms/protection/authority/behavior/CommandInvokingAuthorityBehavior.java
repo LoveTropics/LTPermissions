@@ -1,7 +1,5 @@
 package com.lovetropics.perms.protection.authority.behavior;
 
-import com.lovetropics.perms.LTPermissions;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;

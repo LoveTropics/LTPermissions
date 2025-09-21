@@ -14,20 +14,20 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(CommandSourceStack.class)
 public class CommandSourceStackMixin {
-	@WrapOperation(
-			method = "broadcastToAdmins",
-			at = @At(
-					value = "INVOKE",
-					target = "Lnet/minecraft/server/players/PlayerList;isOp(Lcom/mojang/authlib/GameProfile;)Z"
-			)
-	)
-	private boolean shouldReceiveCommandFeedback(PlayerList playerList, GameProfile profile, Operation<Boolean> original) {
-		ServerPlayer player = playerList.getPlayer(profile.getId());
-		RoleReader roles = player != null ? PermissionsApi.lookup().byPlayer(player) : RoleReader.EMPTY;
-		Boolean commandFeedback = roles.overrides().getOrNull(LTPermissions.COMMAND_FEEDBACK);
-		if (commandFeedback != null) {
-			return commandFeedback;
-		}
-		return original.call(playerList, profile);
-	}
+    @WrapOperation(
+            method = "broadcastToAdmins",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/players/PlayerList;isOp(Lcom/mojang/authlib/GameProfile;)Z"
+            )
+    )
+    private boolean shouldReceiveCommandFeedback(PlayerList playerList, GameProfile profile, Operation<Boolean> original) {
+        ServerPlayer player = playerList.getPlayer(profile.getId());
+        RoleReader roles = player != null ? PermissionsApi.lookup().byPlayer(player) : RoleReader.EMPTY;
+        Boolean commandFeedback = roles.overrides().getOrNull(LTPermissions.COMMAND_FEEDBACK);
+        if (commandFeedback != null) {
+            return commandFeedback;
+        }
+        return original.call(playerList, profile);
+    }
 }

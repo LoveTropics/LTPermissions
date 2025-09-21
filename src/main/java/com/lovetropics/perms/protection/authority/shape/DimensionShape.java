@@ -1,7 +1,6 @@
 package com.lovetropics.perms.protection.authority.shape;
 
 import com.lovetropics.perms.protection.EventSource;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;

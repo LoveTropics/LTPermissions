@@ -55,13 +55,17 @@ public final class UserAuthority implements Authority {
 
     @Override
     public UserAuthority withExclusions(ProtectionExclusions exclusions) {
-        if (this.exclusions == exclusions) return this;
+        if (this.exclusions == exclusions) {
+            return this;
+        }
         return new UserAuthority(this.key, this.level, this.shapes, this.rules, exclusions, this.behavior);
     }
 
     @Override
     public Authority withBehavior(AuthorityBehaviorMap behavior) {
-        if (this.behavior == behavior) return this;
+        if (this.behavior == behavior) {
+            return this;
+        }
         return new UserAuthority(this.key, this.level, this.shapes, this.rules, this.exclusions, behavior);
     }
 
@@ -78,7 +82,9 @@ public final class UserAuthority implements Authority {
     }
 
     private UserAuthority withShape(AuthorityShapes shape) {
-        if (this.shapes == shape) return this;
+        if (this.shapes == shape) {
+            return this;
+        }
         return new UserAuthority(this.key, this.level, shape, this.rules, this.exclusions, this.behavior);
     }
 

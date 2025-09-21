@@ -1,7 +1,6 @@
 package com.lovetropics.perms.protection.authority.behavior.config;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.lovetropics.lib.codec.CodecRegistry;
 import com.lovetropics.perms.LTPermissions;
 import com.mojang.logging.LogUtils;

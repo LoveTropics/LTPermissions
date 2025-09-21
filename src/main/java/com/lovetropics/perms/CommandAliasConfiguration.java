@@ -1,10 +1,8 @@
 package com.lovetropics.perms;
 
-import com.google.gson.JsonParser;
 import com.lovetropics.lib.codec.MoreCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;

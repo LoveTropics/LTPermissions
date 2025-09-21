@@ -9,11 +9,11 @@ import com.sk89q.worldedit.math.BlockVector2;
 import com.sk89q.worldedit.neoforge.NeoForgeAdapter;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
 import com.sk89q.worldedit.regions.Region;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,10 +60,14 @@ public final class PolygonShape implements AuthorityShape {
     @Override
     public boolean accepts(EventSource source) {
         ResourceKey<Level> dimension = source.getDimension();
-        if (!this.acceptsDimension(dimension)) return false;
+        if (!this.acceptsDimension(dimension)) {
+            return false;
+        }
 
         BlockPos pos = source.getPos();
-        if (pos == null) return true;
+        if (pos == null) {
+            return true;
+        }
 
         if (this.bounds.contains(pos)) {
             return Polygonal2DRegion.contains(this.worldEditPoints, this.minY, this.maxY, NeoForgeAdapter.adapt(pos));

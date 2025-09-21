@@ -39,7 +39,7 @@ public final class Uuid2BinaryDatabase implements Closeable {
     private final LongBuffer uuidBuffer = this.uuidBytes.asLongBuffer();
     private final IntBuffer sizeBuffer = this.sizeBytes.asIntBuffer();
 
-    private final ByteBuffer[] headerBytes = new ByteBuffer[] { this.uuidBytes, this.sizeBytes };
+    private final ByteBuffer[] headerBytes = new ByteBuffer[]{this.uuidBytes, this.sizeBytes};
 
     private Uuid2BinaryDatabase(FileChannel file, Object2LongMap<UUID> pointers) {
         this.file = file;

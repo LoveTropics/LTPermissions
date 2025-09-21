@@ -10,7 +10,9 @@ public record SimpleRole(String id, RoleOverrideMap overrides, int index) implem
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
+        if (obj == this) {
+            return true;
+        }
         return obj instanceof SimpleRole role && this.index == role.index && role.id.equalsIgnoreCase(this.id);
     }
 

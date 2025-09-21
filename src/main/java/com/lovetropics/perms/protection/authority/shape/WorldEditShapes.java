@@ -12,8 +12,8 @@ import com.sk89q.worldedit.regions.TransformRegion;
 import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.selector.CylinderRegionSelector;
 import com.sk89q.worldedit.regions.selector.Polygonal2DRegionSelector;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;

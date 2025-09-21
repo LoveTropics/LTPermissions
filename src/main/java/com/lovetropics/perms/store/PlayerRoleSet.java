@@ -8,9 +8,9 @@ import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.override.RoleOverrideMap;
 import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSet;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;

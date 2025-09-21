@@ -38,7 +38,7 @@ public final class CommandRequirementHooks<S> {
         BiConsumer<CommandNode<S>, Predicate<S>> override = overrides::put;
 
         for (CommandNode<S> node : nodes) {
-            this.collectRecursive(new CommandNode[] { node }, override);
+            this.collectRecursive(new CommandNode[]{node}, override);
         }
 
         for (CommandNode<S> node : overrides.keySet()) {

@@ -2,7 +2,6 @@ package com.lovetropics.perms.protection.command.argument;
 
 import com.lovetropics.lib.permission.PermissionsApi;
 import com.lovetropics.lib.permission.role.Role;
-import com.lovetropics.perms.LTPermissions;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;

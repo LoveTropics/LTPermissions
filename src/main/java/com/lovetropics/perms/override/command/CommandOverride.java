@@ -57,7 +57,9 @@ public final class CommandOverride {
     }
 
     private static PermissionResult canUseCommand(CommandSourceStack source, MatchableCommand command) {
-        if (doesBypassPermissions(source)) return PermissionResult.PASS;
+        if (doesBypassPermissions(source)) {
+            return PermissionResult.PASS;
+        }
 
         RoleReader roles = PermissionsApi.lookup().bySource(source);
         return roles.overrides().test(LTPermissions.COMMANDS, m -> m.test(command));

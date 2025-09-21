@@ -1,8 +1,8 @@
 package com.lovetropics.perms.protection;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;

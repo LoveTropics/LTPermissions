@@ -2,7 +2,6 @@ package com.lovetropics.perms.protection.authority.shape;
 
 import com.lovetropics.lib.codec.MoreCodecs;
 import com.lovetropics.perms.protection.EventSource;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionIntersection;

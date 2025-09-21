@@ -144,7 +144,9 @@ public final class RoleCommand {
 
     private static Role getAssignableRole(String roleName) throws CommandSyntaxException {
         Role role = RolesConfig.get().get(roleName);
-        if (role == null || roleName.equals(Role.EVERYONE)) throw ROLE_NOT_FOUND.create(roleName);
+        if (role == null || roleName.equals(Role.EVERYONE)) {
+            throw ROLE_NOT_FOUND.create(roleName);
+        }
         return role;
     }
 

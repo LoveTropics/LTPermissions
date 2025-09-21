@@ -14,8 +14,8 @@ import java.util.Optional;
 
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
-	@Inject(method = "load", at = @At("RETURN"))
-	private void load(ServerPlayer player, ProblemReporter problemReporter, CallbackInfoReturnable<Optional<ValueInput>> cir) {
-		PlayerRoleManager.onPlayerLoaded(player);
-	}
+    @Inject(method = "load", at = @At("RETURN"))
+    private void load(ServerPlayer player, ProblemReporter problemReporter, CallbackInfoReturnable<Optional<ValueInput>> cir) {
+        PlayerRoleManager.onPlayerLoaded(player);
+    }
 }

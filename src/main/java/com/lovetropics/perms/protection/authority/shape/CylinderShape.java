@@ -56,10 +56,14 @@ public final class CylinderShape implements AuthorityShape {
     @Override
     public boolean accepts(EventSource source) {
         ResourceKey<Level> dimension = source.getDimension();
-        if (!this.acceptsDimension(dimension)) return false;
+        if (!this.acceptsDimension(dimension)) {
+            return false;
+        }
 
         BlockPos pos = source.getPos();
-        if (pos == null) return true;
+        if (pos == null) {
+            return true;
+        }
 
         if (this.bounds.contains(pos)) {
             float dx = (float) (pos.getX() - this.centerX) / this.radiusX;

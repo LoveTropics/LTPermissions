@@ -93,9 +93,9 @@ public final class PlayerRoleManager {
     public void onPlayerLoad(ServerPlayer player) {
         if (!this.onlinePlayerRoles.containsKey(player.getUUID())) {
             // Load it, but delay initialization for now, as the player connection isn't quite ready
-			PlayerRoleSet newRoles = new PlayerRoleSet(RolesConfig.get().everyone());
+            PlayerRoleSet newRoles = new PlayerRoleSet(RolesConfig.get().everyone());
             this.onlinePlayerRoles.put(player.getUUID(), newRoles);
-			this.database.tryLoadInto(player.getUUID(), newRoles);
+            this.database.tryLoadInto(player.getUUID(), newRoles);
         }
     }
 
