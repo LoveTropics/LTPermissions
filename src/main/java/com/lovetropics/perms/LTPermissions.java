@@ -27,7 +27,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.waypoints.ServerWaypointManager;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.waypoints.Waypoint;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -66,6 +68,13 @@ public class LTPermissions {
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
     public static final RoleOverrideType<Boolean> BYPASS_WHITELIST = RoleOverrideType.register("bypass_whitelist", Codec.BOOL);
+
+    public static final RoleOverrideType<Waypoint.Icon> WAYPOINT_ICON = RoleOverrideType.register("waypoint_icon", Waypoint.Icon.CODEC)
+            .withChangeListener(player -> {
+                ServerWaypointManager waypointManager = player.level().getWaypointManager();
+                waypointManager.untrackWaypoint(player);
+                waypointManager.trackWaypoint(player);
+            });
 
     private static final RoleLookup LOOKUP = new RoleLookup() {
         @Override

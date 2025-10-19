@@ -8,6 +8,7 @@
     "DedicatedPlayerListMixin",
     "PlayerListMixin",
     "ReloadableServerResourcesMixin",
+    "LivingEntityMixin",
     "rule.CraftingMenuMixin",
     "rule.LecternMenuMixin",
     "rule.SignBlockMixin"
