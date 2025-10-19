@@ -2,6 +2,7 @@ package com.lovetropics.perms.store;
 
 import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.lib.permission.role.RoleOverrideReader;
+import com.lovetropics.lib.permission.role.RoleOverrideType;
 import com.lovetropics.lib.permission.role.RoleProvider;
 import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.LTPermissions;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public final class PlayerRoleSet implements RoleReader {
@@ -37,14 +39,15 @@ public final class PlayerRoleSet implements RoleReader {
         if (initial) {
             overrides.notifyInitialize(player);
         } else {
-            overrides.notifyChange(player);
+            overrides.notifyChange(player, Set.of());
         }
     }
 
     public void rebuildOverridesAndNotify() {
+        Set<RoleOverrideType<?>> oldOverrides = Set.copyOf(overrides.typeSet());
         this.rebuildOverrides();
         if (this.player != null) {
-            this.overrides.notifyChange(this.player);
+            this.overrides.notifyChange(this.player, oldOverrides);
         }
     }
 

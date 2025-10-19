@@ -1,5 +1,6 @@
 package com.lovetropics.perms.override;
 
+import com.google.common.collect.Sets;
 import com.lovetropics.lib.permission.role.RoleOverrideReader;
 import com.lovetropics.lib.permission.role.RoleOverrideType;
 import com.mojang.serialization.Codec;
@@ -46,8 +47,8 @@ public final class RoleOverrideMap implements RoleOverrideReader {
         }
     }
 
-    public void notifyChange(ServerPlayer player) {
-        for (RoleOverrideType<?> override : combinedOverrides.keySet()) {
+    public void notifyChange(ServerPlayer player, Set<RoleOverrideType<?>> oldOverrides) {
+        for (RoleOverrideType<?> override : Sets.union(combinedOverrides.keySet(), oldOverrides)) {
             override.notifyChange(player);
         }
     }
