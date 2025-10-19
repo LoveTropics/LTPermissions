@@ -2,10 +2,9 @@ package com.lovetropics.perms.config;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.perms.override.RoleOverrideMap;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -16,9 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public final class RoleConfigMap implements Iterable<Pair<String, RoleConfig>> {
+    private static final Codec<String> ROLE_ID_CODEC = Codec.STRING.xmap(s -> s.toLowerCase(Locale.ROOT), s1 -> s1.toLowerCase(Locale.ROOT));
+    private static final Codec<Map<String, RoleConfig>> ROLE_MAP_CODEC = Codec.unboundedMap(ROLE_ID_CODEC, RoleConfig.CODEC);
+
     private final Map<String, RoleConfig> roles;
     private final List<String> roleOrder;
 
@@ -28,25 +29,12 @@ public final class RoleConfigMap implements Iterable<Pair<String, RoleConfig>> {
     }
 
     public static <T> RoleConfigMap parse(Dynamic<T> root, ConfigErrorConsumer error) {
-        List<Pair<Dynamic<T>, Dynamic<T>>> roleEntries = root.asMapOpt().result().orElse(Stream.empty()).toList();
-
-        Builder roleBuilder = new Builder();
-
-        for (Pair<Dynamic<T>, Dynamic<T>> entry : roleEntries) {
-            String name = entry.getFirst().asString(Role.EVERYONE).toLowerCase(Locale.ROOT);
-            Dynamic<T> roleRoot = entry.getSecond();
-
-            DataResult<RoleConfig> roleConfigResult = RoleConfig.CODEC.parse(roleRoot);
-            if (roleConfigResult.error().isPresent()) {
-                error.report("Failed to parse role config for '" + name + "'", roleConfigResult.error().get());
-                continue;
-            }
-
-            RoleConfig role = roleConfigResult.result().get();
-            roleBuilder.add(name, role);
-        }
-
-        return roleBuilder.build(error);
+        Map<String, RoleConfig> roles = ROLE_MAP_CODEC.parse(root)
+                .resultOrPartial(err -> error.report("Failed to parse role config: " + err))
+                .orElse(Map.of());
+        Builder builder = new Builder();
+        roles.forEach(builder::add);
+        return builder.build(error);
     }
 
     @Nullable
@@ -105,7 +93,7 @@ public final class RoleConfigMap implements Iterable<Pair<String, RoleConfig>> {
                     }
                 }
 
-                result.put(name, new RoleConfig(resolvedOverrides.build(), new String[0]));
+                result.put(name, new RoleConfig(resolvedOverrides.build(), List.of()));
             }
 
             return result;

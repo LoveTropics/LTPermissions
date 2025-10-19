@@ -1,11 +1,11 @@
 package com.lovetropics.perms.override;
 
-import com.lovetropics.lib.codec.MoreCodecs;
 import com.lovetropics.lib.permission.role.RoleOverrideReader;
 import com.lovetropics.lib.permission.role.RoleOverrideType;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public final class RoleOverrideMap implements RoleOverrideReader {
     public static final RoleOverrideMap EMPTY = new RoleOverrideMap(Map.of());
 
     @SuppressWarnings("unchecked")
-    public static final Codec<RoleOverrideMap> CODEC = Codec.dispatchedMap(RoleOverrideType.REGISTRY, t -> MoreCodecs.listOrUnit((Codec<Object>) t.getCodec()))
+    public static final Codec<RoleOverrideMap> CODEC = Codec.dispatchedMap(RoleOverrideType.REGISTRY, t -> ExtraCodecs.compactListCodec((Codec<Object>) t.getCodec()))
             .xmap(RoleOverrideMap::new, m -> m.overrides);
 
     private final Map<RoleOverrideType<?>, List<Object>> overrides;
