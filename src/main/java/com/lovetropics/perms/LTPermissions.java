@@ -68,6 +68,7 @@ public class LTPermissions {
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
     public static final RoleOverrideType<Boolean> BYPASS_WHITELIST = RoleOverrideType.register("bypass_whitelist", Codec.BOOL);
+    public static final RoleOverrideType<Boolean> WORLDEDIT_ALLOWED = RoleOverrideType.register("worldedit_allowed", Codec.BOOL);
 
     public static final RoleOverrideType<Waypoint.Icon> WAYPOINT_ICON = RoleOverrideType.register("waypoint_icon", Waypoint.Icon.CODEC)
             .withChangeListener(player -> {
