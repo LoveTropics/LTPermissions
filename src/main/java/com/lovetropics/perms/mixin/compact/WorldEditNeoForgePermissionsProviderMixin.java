@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(targets = "com.sk89q.worldedit.neoforge.NeoForgePermissionsProvider$VanillaPermissionsProvider")
 public class WorldEditNeoForgePermissionsProviderMixin {
     @Inject(method = "hasPermission", at = @At("HEAD"), cancellable = true)
-    private void load(ServerPlayer player, String permission, CallbackInfoReturnable<Boolean> cir) {
+    private void hasPermission(ServerPlayer player, String permission, CallbackInfoReturnable<Boolean> cir) {
         PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(player.getUUID());
         if (roles.overrides().test(LTPermissions.WORLDEDIT_ALLOWED)) {
             cir.setReturnValue(true);
