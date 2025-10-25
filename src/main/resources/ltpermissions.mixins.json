@@ -6,9 +6,10 @@
   "mixins": [
     "CommandSourceStackMixin",
     "DedicatedPlayerListMixin",
-    "PlayerListMixin",
-    "ReloadableServerResourcesMixin",
     "LivingEntityMixin",
+    "PlayerListMixin",
+    "MinecraftServerMixin",
+    "ReloadableServerResourcesMixin",
     "compact.WorldEditNeoForgePermissionsProviderMixin",
     "rule.CraftingMenuMixin",
     "rule.LecternMenuMixin",
