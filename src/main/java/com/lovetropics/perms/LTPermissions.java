@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.UUID;
 
 @Mod(LTPermissions.ID)
 public class LTPermissions {
@@ -94,6 +95,11 @@ public class LTPermissions {
         public RoleReader bySource(CommandSourceStack source) {
             Entity entity = source.getEntity();
             return entity != null ? this.byEntity(entity) : RoleReader.EMPTY;
+        }
+
+        @Override
+        public RoleReader byPlayerId(UUID playerId) {
+            return PlayerRoleManager.get().peekRoles(playerId);
         }
     };
 
