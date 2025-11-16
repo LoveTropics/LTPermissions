@@ -3,6 +3,7 @@ package com.lovetropics.perms;
 import com.lovetropics.lib.permission.PermissionsApi;
 import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.lib.permission.role.RoleLookup;
+import com.lovetropics.lib.permission.role.RoleModifier;
 import com.lovetropics.lib.permission.role.RoleOverrideType;
 import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.command.FlyCommand;
@@ -103,12 +104,25 @@ public class LTPermissions {
         }
     };
 
+    private static final RoleModifier MODIFIER = new RoleModifier() {
+        @Override
+        public boolean addRoleTo(UUID playerId, Role role) {
+            return PlayerRoleManager.get().updateRoles(playerId, roles -> roles.add(role));
+        }
+
+        @Override
+        public boolean removeRoleFrom(UUID playerId, Role role) {
+            return PlayerRoleManager.get().updateRoles(playerId, roles -> roles.remove(role));
+        }
+    };
+
     public LTPermissions(IEventBus modBus) {
         modBus.addListener(this::setup);
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerChat);
 
         PermissionsApi.setRoleLookup(LOOKUP);
+        PermissionsApi.setRoleModifier(MODIFIER);
 
         EntitySelectorOptions.register("role", parser -> {
             boolean inverted = parser.shouldInvertValue();
