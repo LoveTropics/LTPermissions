@@ -4,8 +4,10 @@ import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.config.RolesConfig;
+import com.lovetropics.perms.override.JoinOverride;
 import com.lovetropics.perms.store.db.PlayerRoleDatabase;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -124,6 +127,14 @@ public final class PlayerRoleManager {
             PlayerRoleSet newRoles = new PlayerRoleSet(config.everyone());
             if (oldRoles != null) {
                 newRoles.reloadFrom(config, oldRoles);
+
+                boolean couldJoinBefore = oldRoles.overrides().get(LTPermissions.JOIN_ACCESS, JoinOverride.DEFAULT).allowsJoining();
+                JoinOverride newJoinOverride = newRoles.overrides().get(LTPermissions.JOIN_ACCESS, JoinOverride.DEFAULT);
+                boolean canJoinNow = newJoinOverride.allowsJoining();
+                Optional<Component> enforce = newJoinOverride.enforce();
+                if (couldJoinBefore && !canJoinNow && enforce.isPresent()) {
+                    player.connection.disconnect(enforce.get());
+                }
             }
 
             onlinePlayerRoles.put(player.getUUID(), newRoles);
@@ -189,5 +200,15 @@ public final class PlayerRoleManager {
             }
         }
         return playerIds;
+    }
+
+    public int countOnlinePlayersWith(Role role) {
+        int count = 0;
+        for (PlayerRoleSet roles : this.onlinePlayerRoles.values()) {
+            if (roles.has(role)) {
+                count++;
+            }
+        }
+        return count;
     }
 }

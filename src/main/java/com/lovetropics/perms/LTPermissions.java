@@ -10,6 +10,7 @@ import com.lovetropics.perms.command.FlyCommand;
 import com.lovetropics.perms.command.RoleCommand;
 import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.NameDecorationOverride;
+import com.lovetropics.perms.override.JoinOverride;
 import com.lovetropics.perms.override.command.CommandOverride;
 import com.lovetropics.perms.protection.authority.shape.AuthorityShape;
 import com.lovetropics.perms.protection.command.ProtectCommand;
@@ -69,7 +70,7 @@ public class LTPermissions {
 
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
-    public static final RoleOverrideType<Boolean> BYPASS_WHITELIST = RoleOverrideType.register("bypass_whitelist", Codec.BOOL);
+    public static final RoleOverrideType<JoinOverride> JOIN_ACCESS = RoleOverrideType.register("join_access", JoinOverride.CODEC);
     public static final RoleOverrideType<Boolean> WORLDEDIT_ALLOWED = RoleOverrideType.register("worldedit_allowed", Codec.BOOL);
     public static final RoleOverrideType<Integer> OP_LEVEL = RoleOverrideType.register("op_level", Codec.INT);
 

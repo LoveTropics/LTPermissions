@@ -5,7 +5,6 @@
   "refmap": "ltpermissions.refmap.json",
   "mixins": [
     "CommandSourceStackMixin",
-    "DedicatedPlayerListMixin",
     "LivingEntityMixin",
     "PlayerListMixin",
     "MinecraftServerMixin",
