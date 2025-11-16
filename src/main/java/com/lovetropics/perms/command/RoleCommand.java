@@ -29,6 +29,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
@@ -67,14 +69,21 @@ public final class RoleCommand {
                     })
                 )))
                 .then(literal("list")
-                    .then(argument("target", GameProfileArgument.gameProfile()).executes(ctx -> {
+                    .then(literal("player").then(argument("target", GameProfileArgument.gameProfile()).executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
                         Collection<GameProfile> gameProfiles = GameProfileArgument.getGameProfiles(ctx, "target");
                         if (gameProfiles.size() != 1) {
                             throw TOO_MANY_SELECTED.create();
                         }
                         return listRoles(source, gameProfiles.iterator().next());
-                    }))
+                    })))
+                    .then(literal("role").then(argument("role", StringArgumentType.word()).suggests(roleSuggestions())
+                        .executes(ctx -> {
+                            String roleName = StringArgumentType.getString(ctx, "role");
+                            Role role = getAssignableRole(roleName);
+                            return listPlayersWithRole(ctx.getSource(), role);
+                        }))
+                    )
                 )
                 .then(literal("reload").executes(ctx -> reloadRoles(ctx.getSource())))
         );
@@ -129,6 +138,24 @@ public final class RoleCommand {
         }
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int listPlayersWithRole(CommandSourceStack source, Role role) {
+        List<UUID> playerIds = PlayerRoleManager.get().listPlayersWithRole(role);
+        source.sendSuccess(() -> {
+            String playerNames = playerIds.stream()
+                    .map(playerId -> {
+                        Optional<GameProfile> profile = source.getServer().getProfileCache().get(playerId);
+                        if (profile.isPresent()) {
+                            return profile.get().getName();
+                        } else {
+                            return playerId.toString();
+                        }
+                    })
+                    .collect(Collectors.joining(", "));
+            return Component.literal("The following players have the '" + role.id() + "' role: " + playerNames);
+        }, false);
+        return playerIds.size();
     }
 
     private static void requireHasPower(CommandSourceStack source, Role role) throws CommandSyntaxException {

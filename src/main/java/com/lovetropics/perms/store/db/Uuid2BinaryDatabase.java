@@ -14,6 +14,7 @@ import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -290,6 +291,10 @@ public final class Uuid2BinaryDatabase implements Closeable {
             throw new IOException("size is negative (" + size + "<0)");
         }
         return size;
+    }
+
+    public Set<UUID> knownKeys() {
+        return Set.copyOf(pointers.keySet());
     }
 
     @Override

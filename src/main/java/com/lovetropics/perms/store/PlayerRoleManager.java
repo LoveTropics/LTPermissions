@@ -1,10 +1,10 @@
 package com.lovetropics.perms.store;
 
+import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.store.db.PlayerRoleDatabase;
-import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,11 +15,12 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -27,8 +28,6 @@ import java.util.function.Function;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
 public final class PlayerRoleManager {
-    private static final Logger LOGGER = LogUtils.getLogger();
-
     private static PlayerRoleManager instance;
 
     private final PlayerRoleDatabase database;
@@ -177,5 +176,18 @@ public final class PlayerRoleManager {
     @Nullable
     public RoleReader getRolesForOnline(ServerPlayer player) {
         return this.onlinePlayerRoles.get(player.getUUID());
+    }
+
+    public List<UUID> listPlayersWithRole(Role role) {
+        List<UUID> playerIds = new ArrayList<>();
+        for (UUID uuid : database.knownPlayerIds()) {
+            RolesConfig config = RolesConfig.get();
+            PlayerRoleSet roles = new PlayerRoleSet(config.everyone());
+            database.tryLoadInto(uuid, roles);
+            if (roles.has(role)) {
+                playerIds.add(uuid);
+            }
+        }
+        return playerIds;
     }
 }

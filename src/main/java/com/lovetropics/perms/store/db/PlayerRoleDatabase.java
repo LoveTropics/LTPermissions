@@ -14,6 +14,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.UUID;
 
 public final class PlayerRoleDatabase implements Closeable {
@@ -76,6 +77,10 @@ public final class PlayerRoleDatabase implements Closeable {
             CompoundTag nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
             roles.deserialize(config, nbt.getListOrEmpty("roles"));
         }
+    }
+
+    public Set<UUID> knownPlayerIds() {
+        return binary.knownKeys();
     }
 
     @Override
