@@ -8,19 +8,23 @@ import com.lovetropics.perms.store.PlayerRoleManager;
 import com.lovetropics.perms.store.PlayerRoleSet;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.IpBanList;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.players.UserBanList;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.ValueInput;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,6 +50,9 @@ public abstract class PlayerListMixin {
     @Final
     private IpBanList ipBans;
 
+    @Shadow
+    public abstract MinecraftServer getServer();
+
     @Inject(method = "load", at = @At("RETURN"))
     private void load(ServerPlayer player, ProblemReporter problemReporter, CallbackInfoReturnable<Optional<ValueInput>> cir) {
         PlayerRoleManager.onPlayerLoaded(player);
@@ -60,17 +67,23 @@ public abstract class PlayerListMixin {
         }
     }
 
-    // Basically replace canPlayerLogin check with our own implementation for more control
-    @Inject(method = "canPlayerLogin", at = @At("HEAD"), cancellable = true)
-    private void canJoin(SocketAddress socketAddress, GameProfile gameProfile, CallbackInfoReturnable<Component> cir) {
+    /**
+     * @author LTPermissions
+     * @reason Custom join access control
+     * Note returning null means the player can join
+     */
+    @Nullable
+    @Overwrite
+    public Component canPlayerLogin(SocketAddress socketAddress, GameProfile gameProfile) {
+        if (getServer().isSingleplayer()) {
+            return null;
+        }
         // Note not adding support for Expires on bans for simplicity (Not even supported with commands anyway)
         if (bans.isBanned(gameProfile)) {
-            cir.setReturnValue(Component.translatable("multiplayer.disconnect.banned.reason", this.bans.get(gameProfile).getReason()));
-            return;
+            return Component.translatable("multiplayer.disconnect.banned.reason", this.bans.get(gameProfile).getReason());
         }
         if (ipBans.isBanned(socketAddress)) {
-            cir.setReturnValue(Component.translatable("multiplayer.disconnect.banned_ip.reason", ipBans.get(socketAddress).getReason()));
-            return;
+            return Component.translatable("multiplayer.disconnect.banned_ip.reason", ipBans.get(socketAddress).getReason());
         }
 
         int playersOnline = players.size();
@@ -81,16 +94,13 @@ public abstract class PlayerListMixin {
                 .get(LTPermissions.JOIN_ACCESS, JoinOverride.DEFAULT);
 
         if (!userOverrides.allowsJoining()) {
-            cir.setReturnValue(userOverrides.notWhitelistedMessage());
-            return;
+            return userOverrides.notWhitelistedMessage();
         }
         if (userOverrides.byPassJoinLimit()) {
-            cir.setReturnValue(null);
-            return;
+            return null;
         }
         if (playersOnline >= maxPlayers) {
-            cir.setReturnValue(Component.translatable("multiplayer.disconnect.server_full"));
-            return;
+            return Component.translatable("multiplayer.disconnect.server_full");
         }
         if (userOverrides.joinLimit().isPresent()) {
             for (Role role : roles) {
@@ -99,11 +109,11 @@ public abstract class PlayerListMixin {
                     JoinOverride.JoinData joinData = roleJoinOverride.joinLimit().get();
                     int onlineCount = PlayerRoleManager.get().countOnlinePlayersWith(role);
                     if (onlineCount >= joinData.limit()) {
-                        cir.setReturnValue(joinData.message());
-                        return;
+                        return joinData.message();
                     }
                 }
             }
         }
+        return null;
     }
 }
