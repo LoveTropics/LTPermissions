@@ -191,10 +191,13 @@ public final class PlayerRoleManager {
 
     public List<UUID> listPlayersWithRole(Role role) {
         List<UUID> playerIds = new ArrayList<>();
+        RolesConfig config = RolesConfig.get();
         for (UUID uuid : database.knownPlayerIds()) {
-            RolesConfig config = RolesConfig.get();
-            PlayerRoleSet roles = new PlayerRoleSet(config.everyone());
-            database.tryLoadInto(uuid, roles);
+            PlayerRoleSet roles = onlinePlayerRoles.get(uuid);
+            if (roles == null) {
+                roles = new PlayerRoleSet(config.everyone());
+                database.tryLoadInto(uuid, roles);
+            }
             if (roles.has(role)) {
                 playerIds.add(uuid);
             }
