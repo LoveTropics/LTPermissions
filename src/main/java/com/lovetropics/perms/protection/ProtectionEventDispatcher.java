@@ -14,6 +14,8 @@ import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.FlintAndSteelItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -88,7 +90,7 @@ public final class ProtectionEventDispatcher {
             if (protect.denies(source, ProtectionRule.INTERACT_BLOCKS)) {
                 event.setUseBlock(TriState.FALSE);
             }
-            if (protect.denies(source, ProtectionRule.INTERACT_ITEMS) || (isBlockItem(event) && protect.denies(source, ProtectionRule.PLACE))) {
+            if (protect.denies(source, ProtectionRule.INTERACT_ITEMS) || (placesBlock(event) && protect.denies(source, ProtectionRule.PLACE))) {
                 event.setUseItem(TriState.FALSE);
             }
 
@@ -99,8 +101,9 @@ public final class ProtectionEventDispatcher {
         }
     }
 
-    private static boolean isBlockItem(PlayerInteractEvent.RightClickBlock event) {
-        return event.getItemStack().getItem() instanceof BlockItem;
+    private static boolean placesBlock(PlayerInteractEvent.RightClickBlock event) {
+        Item item = event.getItemStack().getItem();
+        return item instanceof BlockItem || item instanceof FlintAndSteelItem;
     }
 
     @SubscribeEvent
