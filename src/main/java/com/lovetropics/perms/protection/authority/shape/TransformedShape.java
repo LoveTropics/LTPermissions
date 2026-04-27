@@ -87,7 +87,7 @@ public final class TransformedShape implements AuthorityShape {
         this.inverseTransform = pos -> {
             Vector3 vector = Vector3.at(pos.getX(), pos.getY(), pos.getZ());
             vector = inverseTransform.apply(vector);
-            return BlockPos.containing(vector.getX(), vector.getY(), vector.getZ());
+            return BlockPos.containing(vector.x(), vector.y(), vector.z());
         };
     }
 

@@ -17,6 +17,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -37,7 +38,7 @@ import java.util.stream.Stream;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
 public final class ProtectionManager extends SavedData {
-    private static final String KEY = "protection";
+    private static final Identifier KEY = Identifier.fromNamespaceAndPath("ltpermissions", "protection");
     private static final SavedDataType<ProtectionManager> TYPE = new SavedDataType<>(
             KEY,
             ProtectionManager::new,

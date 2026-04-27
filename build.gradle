@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.103'
+    id 'net.neoforged.moddev' version '2.0.141'
 }
 
 group = mod_group_id
@@ -21,11 +21,6 @@ if (System.getenv('GITHUB_RUN_NUMBER')) {
 
 neoForge {
     version = project.neo_version
-
-    parchment {
-        minecraftVersion = project.minecraft_version
-        mappingsVersion = project.parchment_version
-    }
 
     runs {
         configureEach {
@@ -57,6 +52,7 @@ repositories {
         content {
             includeGroupAndSubgroups 'com.sk89q'
             includeGroupAndSubgroups 'org.enginehub'
+            includeGroupAndSubgroups 'net.fabricmc'
         }
     }
     maven {
@@ -68,12 +64,12 @@ repositories {
     mavenLocal()
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 dependencies {
     jarJar(implementation("org.lovetropics:LTLib:$ltlib_version"))
 
-    implementation("com.sk89q.worldedit:worldedit-neoforge-mc$minecraft_version:$worldedit_version") {
+    implementation("com.sk89q.worldedit:worldedit-neoforge-mc$worldedit_mc_version:$worldedit_version") {
         exclude group: "com.google.guava"
         exclude group: "org.mozilla"
     }

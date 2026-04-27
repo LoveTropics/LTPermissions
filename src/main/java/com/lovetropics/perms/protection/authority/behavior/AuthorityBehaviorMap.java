@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehaviorConfig;
 import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehaviorConfigs;
 import com.mojang.serialization.Codec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +12,13 @@ import java.util.List;
 public final class AuthorityBehaviorMap {
     public static final AuthorityBehaviorMap EMPTY = new AuthorityBehaviorMap(ImmutableList.of());
 
-    public static final Codec<AuthorityBehaviorMap> CODEC = ResourceLocation.CODEC.listOf()
+    public static final Codec<AuthorityBehaviorMap> CODEC = Identifier.CODEC.listOf()
             .xmap(AuthorityBehaviorMap::new, map -> map.behaviorIds);
 
-    private final List<ResourceLocation> behaviorIds;
+    private final List<Identifier> behaviorIds;
     private final AuthorityBehavior behavior;
 
-    private AuthorityBehaviorMap(List<ResourceLocation> behaviorIds) {
+    private AuthorityBehaviorMap(List<Identifier> behaviorIds) {
         this.behaviorIds = behaviorIds;
         this.behavior = this.buildBehavior();
     }
@@ -26,7 +26,7 @@ public final class AuthorityBehaviorMap {
     private AuthorityBehavior buildBehavior() {
         if (!this.behaviorIds.isEmpty()) {
             List<AuthorityBehavior> behaviors = new ArrayList<>();
-            for (ResourceLocation id : this.behaviorIds) {
+            for (Identifier id : this.behaviorIds) {
                 AuthorityBehaviorConfig config = AuthorityBehaviorConfigs.REGISTRY.get(id);
                 if (config != null) {
                     behaviors.add(config.createBehavior());
@@ -43,9 +43,9 @@ public final class AuthorityBehaviorMap {
         return AuthorityBehavior.EMPTY;
     }
 
-    public AuthorityBehaviorMap addBehavior(ResourceLocation id) {
+    public AuthorityBehaviorMap addBehavior(Identifier id) {
         if (!this.behaviorIds.contains(id)) {
-            List<ResourceLocation> behaviorIds = new ArrayList<>(this.behaviorIds);
+            List<Identifier> behaviorIds = new ArrayList<>(this.behaviorIds);
             behaviorIds.add(id);
             return new AuthorityBehaviorMap(behaviorIds);
         } else {
@@ -53,9 +53,9 @@ public final class AuthorityBehaviorMap {
         }
     }
 
-    public AuthorityBehaviorMap removeBehavior(ResourceLocation id) {
+    public AuthorityBehaviorMap removeBehavior(Identifier id) {
         if (this.behaviorIds.contains(id)) {
-            List<ResourceLocation> behaviorIds = new ArrayList<>(this.behaviorIds);
+            List<Identifier> behaviorIds = new ArrayList<>(this.behaviorIds);
             behaviorIds.remove(id);
             return new AuthorityBehaviorMap(behaviorIds);
         } else {
@@ -71,7 +71,7 @@ public final class AuthorityBehaviorMap {
         return this.behavior;
     }
 
-    public List<ResourceLocation> getBehaviorIds() {
+    public List<Identifier> getBehaviorIds() {
         return this.behaviorIds;
     }
 

@@ -3,6 +3,7 @@ package com.lovetropics.perms.protection.authority.behavior;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
 
 public final class CommandInvokingAuthorityBehavior implements AuthorityBehavior {
     private final String[] enter;
@@ -31,14 +32,14 @@ public final class CommandInvokingAuthorityBehavior implements AuthorityBehavior
         }
 
         CommandSourceStack source = this.getSource(player);
-        Commands commandManager = player.getServer().getCommands();
+        Commands commandManager = player.level().getServer().getCommands();
         for (String command : commands) {
             commandManager.performPrefixedCommand(source, command);
         }
     }
 
     private CommandSourceStack getSource(ServerPlayer player) {
-        CommandSourceStack source = player.createCommandSourceStack().withPermission(4);
+        CommandSourceStack source = player.createCommandSourceStack().withPermission(PermissionSet.ALL_PERMISSIONS);
         if (!this.commandFeedback) {
             source = source.withSuppressedOutput();
         }

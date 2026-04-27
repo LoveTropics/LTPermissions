@@ -52,7 +52,7 @@ public final class BuiltinAuthority implements Authority {
     }
 
     public static BuiltinAuthority dimension(ResourceKey<Level> dimension, ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behavior) {
-        String key = dimension.location().getPath();
+        String key = dimension.identifier().getPath();
         return new BuiltinAuthority(key, DIMENSION_LEVEL, EventFilter.dimension(dimension), rules, exclusions, behavior);
     }
 

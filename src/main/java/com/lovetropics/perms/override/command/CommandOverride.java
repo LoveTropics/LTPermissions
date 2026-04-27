@@ -7,6 +7,8 @@ import com.lovetropics.perms.LTPermissions;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.serialization.Codec;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.Permissions;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -66,7 +68,7 @@ public final class CommandOverride {
     }
 
     public static boolean doesBypassPermissions(CommandSourceStack source) {
-        return source.hasPermission(4);
+        return source.permissions().hasPermission(Permissions.COMMANDS_ADMIN);
     }
 
     public PermissionResult test(MatchableCommand command) {

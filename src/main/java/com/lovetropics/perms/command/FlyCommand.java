@@ -8,6 +8,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Abilities;
@@ -24,7 +27,7 @@ public class FlyCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("fly")
-                .requires(ctx -> ctx.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(ctx -> ctx.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
                 .then(literal("enable").executes(context -> setFlight(context, true)))
                 .then(literal("disable").executes(context -> setFlight(context, false)))
                 .executes(FlyCommand::toggleFlight));

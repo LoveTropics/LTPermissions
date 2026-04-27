@@ -26,9 +26,11 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.selector.options.EntitySelectorOptions;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.waypoints.ServerWaypointManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.waypoints.Waypoint;
@@ -52,7 +54,7 @@ public class LTPermissions {
     public static final RoleOverrideType<CommandOverride> COMMANDS = RoleOverrideType.register("commands", CommandOverride.CODEC)
             .withBuilder(CommandOverride::build)
             .withChangeListener(player -> {
-                MinecraftServer server = player.getServer();
+                MinecraftServer server = player.level().getServer();
                 if (server != null) {
                     server.getCommands().sendCommands(player);
                 }
@@ -164,7 +166,7 @@ public class LTPermissions {
             String[] commands = entry.getValue();
             LiteralArgumentBuilder<CommandSourceStack> last = nodes[nodes.length - 1];
             last.executes(context -> {
-                CommandSourceStack source = context.getSource().withPermission(4).withSuppressedOutput();
+                CommandSourceStack source = context.getSource().withPermission(PermissionSet.ALL_PERMISSIONS).withSuppressedOutput();
                 for (String command : commands) {
                     source.getServer().getCommands().performPrefixedCommand(source, command);
                 }
@@ -184,12 +186,12 @@ public class LTPermissions {
 
         RoleReader roles = PermissionsApi.lookup().byPlayer(player);
         if (roles.overrides().test(MUTE)) {
-            player.displayClientMessage(Component.literal("You are muted!").withStyle(ChatFormatting.RED), true);
+            player.sendOverlayMessage(Component.literal("You are muted!").withStyle(ChatFormatting.RED));
             event.setCanceled(true);
         }
     }
 
-    public static ResourceLocation location(String path) {
-        return ResourceLocation.fromNamespaceAndPath(ID, path);
+    public static Identifier location(String path) {
+        return Identifier.fromNamespaceAndPath(ID, path);
     }
 }

@@ -6,11 +6,11 @@ import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.JoinOverride;
 import com.lovetropics.perms.store.PlayerRoleManager;
 import com.lovetropics.perms.store.PlayerRoleSet;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.IpBanList;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.players.UserBanList;
 import net.minecraft.util.ProblemReporter;
@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
+import javax.naming.Name;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,8 +60,8 @@ public abstract class PlayerListMixin {
     }
 
     @Inject(method = "isOp", at = @At("HEAD"), cancellable = true)
-    private void checkIsOp(GameProfile profile, CallbackInfoReturnable<Boolean> cir) {
-        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(profile.getId());
+    private void checkIsOp(NameAndId profile, CallbackInfoReturnable<Boolean> cir) {
+        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(profile.id());
         Integer opLevel = roles.overrides().getOrNull(LTPermissions.OP_LEVEL);
         if (opLevel != null && opLevel >= 4) {
             cir.setReturnValue(true);
@@ -74,7 +75,7 @@ public abstract class PlayerListMixin {
      */
     @Nullable
     @Overwrite
-    public Component canPlayerLogin(SocketAddress socketAddress, GameProfile gameProfile) {
+    public Component canPlayerLogin(SocketAddress socketAddress, NameAndId gameProfile) {
         if (getServer().isSingleplayer()) {
             return null;
         }
@@ -87,7 +88,7 @@ public abstract class PlayerListMixin {
         }
 
         int playersOnline = players.size();
-        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(gameProfile.getId());
+        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(gameProfile.id());
 
         JoinOverride userOverrides = roles
                 .overrides()

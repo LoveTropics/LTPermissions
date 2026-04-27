@@ -8,7 +8,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class AuthorityBehaviorConfigs {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final CodecRegistry<ResourceLocation, AuthorityBehaviorConfig> REGISTRY = CodecRegistry.resourceLocationKeys();
+    public static final CodecRegistry<Identifier, AuthorityBehaviorConfig> REGISTRY = CodecRegistry.resourceLocationKeys();
 
     private static final FileToIdConverter FILE_TO_ID_CONVERTER = FileToIdConverter.json("authority_behaviors");
 
@@ -45,14 +45,14 @@ public final class AuthorityBehaviorConfigs {
                         }, gameExecutor));
     }
 
-    private static Map<ResourceLocation, AuthorityBehaviorConfig> load(ResourceManager resourceManager) {
-        Map<ResourceLocation, AuthorityBehaviorConfig> result = new Object2ObjectOpenHashMap<>();
+    private static Map<Identifier, AuthorityBehaviorConfig> load(ResourceManager resourceManager) {
+        Map<Identifier, AuthorityBehaviorConfig> result = new Object2ObjectOpenHashMap<>();
 
-        Map<ResourceLocation, Resource> resources = FILE_TO_ID_CONVERTER.listMatchingResources(resourceManager);
-        for (Map.Entry<ResourceLocation, Resource> entry : resources.entrySet()) {
-            ResourceLocation location = entry.getKey();
+        Map<Identifier, Resource> resources = FILE_TO_ID_CONVERTER.listMatchingResources(resourceManager);
+        for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
+            Identifier location = entry.getKey();
             try {
-                ResourceLocation id = FILE_TO_ID_CONVERTER.fileToId(location);
+                Identifier id = FILE_TO_ID_CONVERTER.fileToId(location);
                 loadConfig(entry.getValue())
                         .resultOrPartial(error -> LOGGER.error("Failed to load game authority behavior at {}: {}", location, error))
                         .ifPresent(config -> result.put(id, config));

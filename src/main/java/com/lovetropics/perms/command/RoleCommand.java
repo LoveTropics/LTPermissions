@@ -6,7 +6,6 @@ import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.command.CommandOverride;
 import com.lovetropics.perms.store.PlayerRoleManager;
 import com.lovetropics.perms.store.PlayerRoleSet;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -24,6 +23,8 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -47,13 +48,13 @@ public final class RoleCommand {
     // @formatter:off
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("role")
-                .requires(s -> s.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
                 .then(literal("assign")
                     .then(argument("targets", GameProfileArgument.gameProfile())
                     .then(argument("role", StringArgumentType.word()).suggests(roleSuggestions())
                     .executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
-                        Collection<GameProfile> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
+                        Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
                         return updateRoles(source, targets, roleName, PlayerRoleSet::add, "'%s' assigned to %s players");
                     })
@@ -63,7 +64,7 @@ public final class RoleCommand {
                     .then(argument("role", StringArgumentType.word()).suggests(roleSuggestions())
                     .executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
-                        Collection<GameProfile> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
+                        Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
                         return updateRoles(source, targets, roleName, PlayerRoleSet::remove, "'%s' removed from %s players");
                     })
@@ -71,7 +72,7 @@ public final class RoleCommand {
                 .then(literal("list")
                     .then(literal("player").then(argument("target", GameProfileArgument.gameProfile()).executes(ctx -> {
                         CommandSourceStack source = ctx.getSource();
-                        Collection<GameProfile> gameProfiles = GameProfileArgument.getGameProfiles(ctx, "target");
+                        Collection<NameAndId> gameProfiles = GameProfileArgument.getGameProfiles(ctx, "target");
                         if (gameProfiles.size() != 1) {
                             throw TOO_MANY_SELECTED.create();
                         }
@@ -90,15 +91,15 @@ public final class RoleCommand {
     }
     // @formatter:on
 
-    private static int updateRoles(CommandSourceStack source, Collection<GameProfile> players, String roleName, BiPredicate<PlayerRoleSet, Role> apply, String success) throws CommandSyntaxException {
+    private static int updateRoles(CommandSourceStack source, Collection<NameAndId> players, String roleName, BiPredicate<PlayerRoleSet, Role> apply, String success) throws CommandSyntaxException {
         Role role = getAssignableRole(roleName);
         requireHasPower(source, role);
 
         PlayerRoleManager roleManager = PlayerRoleManager.get();
 
         int count = 0;
-        for (GameProfile player : players) {
-            boolean applied = roleManager.updateRoles(player.getId(), roles -> apply.test(roles, role));
+        for (NameAndId player : players) {
+            boolean applied = roleManager.updateRoles(player.id(), roles -> apply.test(roles, role));
             if (applied) {
                 count++;
             }
@@ -110,10 +111,10 @@ public final class RoleCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int listRoles(CommandSourceStack source, GameProfile player) {
+    private static int listRoles(CommandSourceStack source, NameAndId player) {
         PlayerRoleManager roleManager = PlayerRoleManager.get();
 
-        List<Role> roles = roleManager.peekRoles(player.getId())
+        List<Role> roles = roleManager.peekRoles(player.id())
                 .stream().collect(Collectors.toList());
         source.sendSuccess(() -> {
             Component rolesComponent = ComponentUtils.formatList(roles, role -> Component.literal(role.id()).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
@@ -145,9 +146,9 @@ public final class RoleCommand {
         source.sendSuccess(() -> {
             String playerNames = playerIds.stream()
                     .map(playerId -> {
-                        Optional<GameProfile> profile = source.getServer().getProfileCache().get(playerId);
+                        Optional<NameAndId> profile = source.getServer().services().nameToIdCache().get(playerId);
                         if (profile.isPresent()) {
-                            return profile.get().getName();
+                            return profile.get().name();
                         } else {
                             return playerId.toString();
                         }

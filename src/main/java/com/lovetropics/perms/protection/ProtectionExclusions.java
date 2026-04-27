@@ -7,6 +7,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -62,23 +64,23 @@ public final class ProtectionExclusions implements EventFilter {
         return result;
     }
 
-    public ProtectionExclusions addPlayer(GameProfile profile) {
-        if (this.players.contains(profile.getId())) {
+    public ProtectionExclusions addPlayer(NameAndId profile) {
+        if (this.players.contains(profile.id())) {
             return this;
         }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
-        result.players.add(profile.getId());
+        result.players.add(profile.id());
         return result;
     }
 
-    public ProtectionExclusions removePlayer(GameProfile profile) {
-        if (!this.players.contains(profile.getId())) {
+    public ProtectionExclusions removePlayer(NameAndId profile) {
+        if (!this.players.contains(profile.id())) {
             return this;
         }
 
         ProtectionExclusions result = new ProtectionExclusions(this.roles, this.players, this.operators);
-        result.players.remove(profile.getId());
+        result.players.remove(profile.id());
         return result;
     }
 
@@ -96,7 +98,7 @@ public final class ProtectionExclusions implements EventFilter {
         }
 
         if (player instanceof ServerPlayer) {
-            if (this.operators && player.hasPermissions(4)) {
+            if (this.operators && player.permissions().hasPermission(Permissions.COMMANDS_ADMIN)) {
                 return true;
             }
 

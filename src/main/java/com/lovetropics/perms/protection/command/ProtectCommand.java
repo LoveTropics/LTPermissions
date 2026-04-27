@@ -38,8 +38,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
 
 import java.util.Collection;
 import java.util.function.UnaryOperator;
@@ -64,7 +66,7 @@ public final class ProtectCommand {
         // @formatter:off
         dispatcher.register(
             literal("protect")
-                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
                 .then(literal("add")
                     .then(argument("authority", StringArgumentType.string())
                     .then(argument("level", IntegerArgumentType.integer())
@@ -261,9 +263,9 @@ public final class ProtectCommand {
     }
 
     private static int addPlayerExclusion(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        Collection<GameProfile> players = GameProfileArgument.getGameProfiles(context, "players");
+        Collection<NameAndId> players = GameProfileArgument.getGameProfiles(context, "players");
         return modifyExclusions(context, authority -> {
-            for (GameProfile player : players) {
+            for (NameAndId player : players) {
                 authority = authority.addExclusion(player);
             }
             return authority;
@@ -276,9 +278,9 @@ public final class ProtectCommand {
     }
 
     private static int removePlayerExclusion(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        Collection<GameProfile> players = GameProfileArgument.getGameProfiles(context, "players");
+        Collection<NameAndId> players = GameProfileArgument.getGameProfiles(context, "players");
         return modifyExclusions(context, authority -> {
-            for (GameProfile player : players) {
+            for (NameAndId player : players) {
                 authority = authority.removeExclusion(player);
             }
             return authority;
@@ -344,7 +346,7 @@ public final class ProtectCommand {
 
     private static int addBehavior(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Authority authority = AuthorityArgument.getAll(context, "authority");
-        ResourceLocation behaviorId = AuthorityBehaviorArgument.get(context, "behavior").getFirst();
+        Identifier behaviorId = AuthorityBehaviorArgument.get(context, "behavior").getFirst();
 
         ProtectionManager protection = protection(context);
         protection.replaceAuthority(authority, authority.addBehavior(behaviorId));
@@ -361,7 +363,7 @@ public final class ProtectCommand {
 
     private static int removeBehavior(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         Authority authority = AuthorityArgument.getAll(context, "authority");
-        ResourceLocation behaviorId = AuthorityBehaviorArgument.get(context, "behavior").getFirst();
+        Identifier behaviorId = AuthorityBehaviorArgument.get(context, "behavior").getFirst();
 
         ProtectionManager protection = protection(context);
         protection.replaceAuthority(authority, authority.removeBehavior(behaviorId));
