@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -55,10 +56,10 @@ public final class PlayerRoleManager {
         }
     }
 
-    public static void onPlayerLoaded(ServerPlayer player) {
+    public static void onPlayerLoaded(NameAndId nameAndId) {
         PlayerRoleManager instance = PlayerRoleManager.instance;
         if (instance != null) {
-            instance.onPlayerLoad(player);
+            instance.onPlayerLoad(nameAndId);
         }
     }
 
@@ -92,12 +93,12 @@ public final class PlayerRoleManager {
         return Objects.requireNonNull(instance, "player role manager not initialized");
     }
 
-    public void onPlayerLoad(ServerPlayer player) {
-        if (!this.onlinePlayerRoles.containsKey(player.getUUID())) {
+    public void onPlayerLoad(NameAndId nameAndId) {
+        if (!this.onlinePlayerRoles.containsKey(nameAndId.id())) {
             // Load it, but delay initialization for now, as the player connection isn't quite ready
             PlayerRoleSet newRoles = new PlayerRoleSet(RolesConfig.get().everyone());
-            this.onlinePlayerRoles.put(player.getUUID(), newRoles);
-            this.database.tryLoadInto(player.getUUID(), newRoles);
+            this.onlinePlayerRoles.put(nameAndId.id(), newRoles);
+            this.database.tryLoadInto(nameAndId.id(), newRoles);
         }
     }
 

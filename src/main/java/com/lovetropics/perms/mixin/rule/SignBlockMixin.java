@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(SignBlock.class)
 public class SignBlockMixin {
     @Inject(method = "openTextEdit", at = @At("HEAD"), cancellable = true)
-    private void openTextEdit(final Player player, final SignBlockEntity entity, final boolean frontText, final CallbackInfo ci) {
+    private void openTextEdit(final Player player, final SignBlockEntity sign, final boolean isFrontText, final CallbackInfo ci) {
         if (player instanceof final ServerPlayer serverPlayer) {
-            if (ProtectionEventDispatcher.onEditSign(serverPlayer, entity.getBlockPos())) {
+            if (ProtectionEventDispatcher.onEditSign(serverPlayer, sign.getBlockPos())) {
                 ci.cancel();
             }
         }

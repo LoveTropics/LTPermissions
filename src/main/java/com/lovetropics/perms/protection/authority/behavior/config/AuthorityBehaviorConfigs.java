@@ -9,6 +9,7 @@ import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;
@@ -21,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
@@ -35,9 +37,9 @@ public final class AuthorityBehaviorConfigs {
 
     @SubscribeEvent
     public static void addReloadListener(AddServerReloadListenersEvent event) {
-        event.addListener(LTPermissions.location("authority_behaviors"), (stage, resourceManager, backgroundExecutor, gameExecutor) ->
-                CompletableFuture.supplyAsync(() -> load(resourceManager), backgroundExecutor)
-                        .thenCompose(stage::wait)
+        event.addListener(LTPermissions.location("authority_behaviors"), (sharedState, executor, preparationBarrier, gameExecutor) ->
+                CompletableFuture.supplyAsync(() -> load(sharedState.resourceManager()), executor)
+                        .thenCompose(preparationBarrier::wait)
                         .thenAcceptAsync(configs -> {
                             REGISTRY.clear();
                             configs.forEach(REGISTRY::register);

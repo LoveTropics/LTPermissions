@@ -24,9 +24,9 @@ public class CraftingMenuMixin {
             AbstractContainerMenu menu,
             ServerLevel level,
             Player player,
-            CraftingContainer craftSlots,
+            CraftingContainer container,
             ResultContainer resultSlots,
-            @Nullable RecipeHolder<CraftingRecipe> recipe,
+            @Nullable RecipeHolder<CraftingRecipe> recipeHint,
             CallbackInfo ci
     ) {
         if (player instanceof ServerPlayer sp && ProtectionEventDispatcher.onCraft(sp)) {

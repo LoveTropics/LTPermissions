@@ -21,13 +21,13 @@ public class CommandSourceStackMixin {
                     target = "Lnet/minecraft/server/players/PlayerList;isOp(Lnet/minecraft/server/players/NameAndId;)Z"
             )
     )
-    private boolean shouldReceiveCommandFeedback(PlayerList playerList, NameAndId profile, Operation<Boolean> original) {
-        ServerPlayer player = playerList.getPlayer(profile.id());
+    private boolean shouldReceiveCommandFeedback(PlayerList playerList, NameAndId nameAndId, Operation<Boolean> original) {
+        ServerPlayer player = playerList.getPlayer(nameAndId.id());
         RoleReader roles = player != null ? PermissionsApi.lookup().byPlayer(player) : RoleReader.EMPTY;
         Boolean commandFeedback = roles.overrides().getOrNull(LTPermissions.COMMAND_FEEDBACK);
         if (commandFeedback != null) {
             return commandFeedback;
         }
-        return original.call(playerList, profile);
+        return original.call(playerList, nameAndId);
     }
 }

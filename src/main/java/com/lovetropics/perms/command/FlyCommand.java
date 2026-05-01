@@ -27,7 +27,7 @@ public class FlyCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("fly")
-                .requires(ctx -> ctx.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(literal("enable").executes(context -> setFlight(context, true)))
                 .then(literal("disable").executes(context -> setFlight(context, false)))
                 .executes(FlyCommand::toggleFlight));

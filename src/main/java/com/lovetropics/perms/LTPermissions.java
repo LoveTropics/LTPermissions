@@ -29,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.waypoints.ServerWaypointManager;
@@ -74,7 +75,7 @@ public class LTPermissions {
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
     public static final RoleOverrideType<JoinOverride> JOIN_ACCESS = RoleOverrideType.register("join_access", JoinOverride.CODEC);
     public static final RoleOverrideType<Boolean> WORLDEDIT_ALLOWED = RoleOverrideType.register("worldedit_allowed", Codec.BOOL);
-    public static final RoleOverrideType<Integer> OP_LEVEL = RoleOverrideType.register("op_level", Codec.INT);
+    public static final RoleOverrideType<PermissionLevel> OP_LEVEL = RoleOverrideType.register("op_level", PermissionLevel.INT_CODEC);
 
     public static final RoleOverrideType<Waypoint.Icon> WAYPOINT_ICON = RoleOverrideType.register("waypoint_icon", Waypoint.Icon.CODEC)
             .withChangeListener(player -> {

@@ -2,20 +2,18 @@ package com.lovetropics.perms.mixin;
 
 import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.perms.LTPermissions;
-import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.JoinOverride;
 import com.lovetropics.perms.store.PlayerRoleManager;
 import com.lovetropics.perms.store.PlayerRoleSet;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.players.IpBanList;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.players.UserBanList;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.level.storage.ValueInput;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -25,12 +23,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
-import javax.naming.Name;
 import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Mixin(PlayerList.class)
@@ -45,25 +39,24 @@ public abstract class PlayerListMixin {
 
     @Shadow
     @Final
-    protected int maxPlayers;
-
-    @Shadow
-    @Final
     private IpBanList ipBans;
 
     @Shadow
     public abstract MinecraftServer getServer();
 
-    @Inject(method = "load", at = @At("RETURN"))
-    private void load(ServerPlayer player, ProblemReporter problemReporter, CallbackInfoReturnable<Optional<ValueInput>> cir) {
-        PlayerRoleManager.onPlayerLoaded(player);
+    @Shadow
+    public abstract int getMaxPlayers();
+
+    @Inject(method = "loadPlayerData", at = @At("RETURN"))
+    private void load(NameAndId nameAndId, CallbackInfoReturnable<Optional<CompoundTag>> cir) {
+        PlayerRoleManager.onPlayerLoaded(nameAndId);
     }
 
     @Inject(method = "isOp", at = @At("HEAD"), cancellable = true)
-    private void checkIsOp(NameAndId profile, CallbackInfoReturnable<Boolean> cir) {
-        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(profile.id());
-        Integer opLevel = roles.overrides().getOrNull(LTPermissions.OP_LEVEL);
-        if (opLevel != null && opLevel >= 4) {
+    private void checkIsOp(NameAndId nameAndId, CallbackInfoReturnable<Boolean> cir) {
+        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(nameAndId.id());
+        PermissionLevel opLevel = roles.overrides().getOrNull(LTPermissions.OP_LEVEL);
+        if (opLevel != null && opLevel.isEqualOrHigherThan(PermissionLevel.OWNERS)) {
             cir.setReturnValue(true);
         }
     }
@@ -100,7 +93,7 @@ public abstract class PlayerListMixin {
         if (userOverrides.byPassJoinLimit()) {
             return null;
         }
-        if (playersOnline >= maxPlayers) {
+        if (playersOnline >= getMaxPlayers()) {
             return Component.translatable("multiplayer.disconnect.server_full");
         }
         if (userOverrides.joinLimit().isPresent()) {
