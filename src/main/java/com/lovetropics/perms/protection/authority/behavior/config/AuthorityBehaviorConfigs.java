@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class AuthorityBehaviorConfigs {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final CodecRegistry<Identifier, AuthorityBehaviorConfig> REGISTRY = CodecRegistry.resourceLocationKeys();
+    public static final CodecRegistry<Identifier, AuthorityBehaviorConfig> REGISTRY = CodecRegistry.idKeys();
 
     private static final FileToIdConverter FILE_TO_ID_CONVERTER = FileToIdConverter.json("authority_behaviors");
 

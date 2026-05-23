@@ -17,3 +17,5 @@ build/
 run/
 
 libs/*.jar
+
+*.DS_Store

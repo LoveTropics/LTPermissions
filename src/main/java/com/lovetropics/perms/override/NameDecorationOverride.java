@@ -15,6 +15,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -147,7 +148,7 @@ public record NameDecorationOverride(
     }
 
     public record ApplyStyle(ChatFormatting[] formats, @Nullable TextColor color) {
-        public static final Codec<ApplyStyle> CODEC = MoreCodecs.listOrUnit(Codec.STRING).xmap(
+        public static final Codec<ApplyStyle> CODEC = ExtraCodecs.compactListCodec(Codec.STRING).xmap(
                 formatKeys -> {
                     final List<ChatFormatting> formats = new ArrayList<>();
                     TextColor color = null;
