@@ -28,14 +28,13 @@ import com.mojang.datafixers.util.Pair;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.neoforge.NeoForgeAdapter;
-import com.sk89q.worldedit.neoforge.NeoForgePlayer;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.session.SessionManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -313,7 +312,7 @@ public final class ProtectCommand {
 
     private static void applySelectionFor(CommandSourceStack source, AuthorityShape shape) throws CommandSyntaxException {
         SessionManager sessionManager = WorldEdit.getInstance().getSessionManager();
-        NeoForgePlayer player = NeoForgeAdapter.adaptPlayer(source.getPlayerOrException());
+        Player player = NeoForgeAdapter.get().fromNativePlayer(source.getPlayerOrException());
         LocalSession session = sessionManager.get(player);
 
         RegionSelector selector = WorldEditShapes.tryIntoRegionSelector(source.getServer(), shape);
@@ -329,7 +328,7 @@ public final class ProtectCommand {
         ServerPlayer player = source.getPlayerOrException();
 
         SessionManager sessionManager = WorldEdit.getInstance().getSessionManager();
-        LocalSession session = sessionManager.get(NeoForgeAdapter.adaptPlayer(player));
+        LocalSession session = sessionManager.get(NeoForgeAdapter.get().fromNativePlayer(player));
 
         try {
             Region selection = session.getSelection();

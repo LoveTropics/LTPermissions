@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 //https://github.com/EngineHub/WorldEdit/blob/version/7.3.x/worldedit-neoforge/src/main/java/com/sk89q/worldedit/neoforge/NeoForgePermissionsProvider.java#L32
-@Mixin(targets = "com.sk89q.worldedit.neoforge.NeoForgePermissionsProvider$VanillaPermissionsProvider")
+@Mixin(targets = "com.sk89q.worldedit.coremc.internal.VanillaPermissionsProvider")
 public class WorldEditNeoForgePermissionsProviderMixin {
     @Inject(method = "hasPermission", at = @At("HEAD"), cancellable = true)
     private void hasPermission(ServerPlayer player, String permission, CallbackInfoReturnable<Boolean> cir) {

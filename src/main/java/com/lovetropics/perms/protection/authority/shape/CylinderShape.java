@@ -102,7 +102,7 @@ public final class CylinderShape implements AuthorityShape {
     public Region tryIntoRegion(MinecraftServer server) {
         ServerLevel world = server.getLevel(this.dimension);
         return new CylinderRegion(
-                NeoForgeAdapter.adapt(world),
+                NeoForgeAdapter.get().fromNativeWorld(world),
                 BlockVector3.at(this.centerX, 0, this.centerZ),
                 Vector2.at(this.radiusX, this.radiusZ),
                 this.minY, this.maxY

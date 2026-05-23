@@ -35,8 +35,8 @@ public record BoxShape(ResourceKey<Level> dimension, BlockBox box) implements Au
 
     public static BoxShape fromRegion(Region region) {
         ResourceKey<Level> dimension = WorldEditShapes.asDimension(region.getWorld());
-        BlockPos min = NeoForgeAdapter.toBlockPos(region.getMinimumPoint());
-        BlockPos max = NeoForgeAdapter.toBlockPos(region.getMaximumPoint());
+        BlockPos min = NeoForgeAdapter.get().toBlockPos(region.getMinimumPoint());
+        BlockPos max = NeoForgeAdapter.get().toBlockPos(region.getMaximumPoint());
         return new BoxShape(dimension, BlockBox.of(min, max));
     }
 
@@ -45,9 +45,9 @@ public record BoxShape(ResourceKey<Level> dimension, BlockBox box) implements Au
     public Region tryIntoRegion(MinecraftServer server) {
         ServerLevel world = server.getLevel(this.dimension);
         return new CuboidRegion(
-                NeoForgeAdapter.adapt(world),
-                NeoForgeAdapter.adapt(this.box.min()),
-                NeoForgeAdapter.adapt(this.box.max())
+                NeoForgeAdapter.get().fromNativeWorld(world),
+                NeoForgeAdapter.get().adapt(this.box.min()),
+                NeoForgeAdapter.get().adapt(this.box.max())
         );
     }
 }

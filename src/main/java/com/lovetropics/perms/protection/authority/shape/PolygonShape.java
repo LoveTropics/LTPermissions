@@ -70,7 +70,7 @@ public final class PolygonShape implements AuthorityShape {
         }
 
         if (this.bounds.contains(pos)) {
-            return Polygonal2DRegion.contains(this.worldEditPoints, this.minY, this.maxY, NeoForgeAdapter.adapt(pos));
+            return Polygonal2DRegion.contains(this.worldEditPoints, this.minY, this.maxY, NeoForgeAdapter.get().adapt(pos));
         } else {
             return false;
         }
@@ -104,6 +104,6 @@ public final class PolygonShape implements AuthorityShape {
     @Override
     public Region tryIntoRegion(MinecraftServer server) {
         ServerLevel world = server.getLevel(this.dimension);
-        return new Polygonal2DRegion(NeoForgeAdapter.adapt(world), this.worldEditPoints, this.minY, this.maxY);
+        return new Polygonal2DRegion(NeoForgeAdapter.get().fromNativeWorld(world), this.worldEditPoints, this.minY, this.maxY);
     }
 }

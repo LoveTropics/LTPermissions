@@ -1,7 +1,7 @@
 package com.lovetropics.perms.protection.authority.shape;
 
 import com.sk89q.worldedit.math.BlockVector2;
-import com.sk89q.worldedit.neoforge.NeoForgeWorld;
+import com.sk89q.worldedit.neoforge.NeoForgeAdapter;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.CylinderRegion;
 import com.sk89q.worldedit.regions.Polygonal2DRegion;
@@ -68,7 +68,6 @@ public final class WorldEditShapes {
     }
 
     public static ResourceKey<Level> asDimension(com.sk89q.worldedit.world.World world) {
-        NeoForgeWorld forgeWorld = (NeoForgeWorld) world;
-        return forgeWorld.getWorld().dimension();
+        return NeoForgeAdapter.get().toNativeWorld(world).dimension();
     }
 }

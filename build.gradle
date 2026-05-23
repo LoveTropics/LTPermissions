@@ -74,7 +74,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 dependencies {
     jarJar(implementation("org.lovetropics:LTLib:$ltlib_version"))
 
-    implementation "curse.maven:worldedit-225608:7903183"
+   implementation "curse.maven:worldedit-225608:8037379"
     // There maven jar is broken atm. Using CurseMaven until it's fixed.
 //    implementation("com.sk89q.worldedit:worldedit-neoforge-mc$worldedit_mc_version:$worldedit_version") {
 //        exclude group: "com.google.guava"
