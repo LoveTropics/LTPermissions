@@ -19,13 +19,13 @@ import java.util.concurrent.Executor;
 
 @Mixin(ReloadableServerResources.class)
 public class ReloadableServerResourcesMixin {
-    @Inject(method = "lambda$loadResources$0", at = @At("HEAD"))
-    private static void beforeLoadResources(Executor backgroundExecutor, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, List<Registry.PendingTags<?>> updatedContextTags, PermissionSet functionCompilationPermissions, ResourceManager resourceManager, Executor mainThreadExecutor, ReloadableServerRegistries.LoadResult fullRegistries, CallbackInfoReturnable<CompletionStage<?>> cir) {
+    @Inject(method = "lambda$loadResources$2", at = @At("HEAD"))
+    private static void beforeLoadResources(ReloadableServerRegistries.LoadResult fullRegistries, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, List updatedContextTags, PermissionSet functionCompilationPermissions, ResourceManager resourceManager, Executor backgroundExecutor, Executor mainThreadExecutor, List pendingComponents, CallbackInfoReturnable<CompletionStage> cir) {
         CommandAliasConfiguration.setResourceManager(resourceManager);
     }
 
-    @Inject(method = "lambda$loadResources$0", at = @At("TAIL"))
-    private static void afterLoadResources(Executor backgroundExecutor, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, List<Registry.PendingTags<?>> updatedContextTags, PermissionSet functionCompilationPermissions, ResourceManager resourceManager, Executor mainThreadExecutor, ReloadableServerRegistries.LoadResult fullRegistries, CallbackInfoReturnable<CompletionStage<?>> cir) {
+    @Inject(method = "lambda$loadResources$2", at = @At("TAIL"))
+    private static void afterLoadResources(ReloadableServerRegistries.LoadResult fullRegistries, FeatureFlagSet enabledFeatures, Commands.CommandSelection commandSelection, List updatedContextTags, PermissionSet functionCompilationPermissions, ResourceManager resourceManager, Executor backgroundExecutor, Executor mainThreadExecutor, List pendingComponents, CallbackInfoReturnable<CompletionStage> cir) {
         CommandAliasConfiguration.clearResourceManager();
     }
 }
