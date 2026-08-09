@@ -126,7 +126,7 @@ public final class ProtectionEventDispatcher {
     }
 
     @SubscribeEvent
-    public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+    public static void onInteractEntitySpecific(PlayerInteractEvent.EntityInteract event) {
         if (isInteractionBlocked(event.getEntity(), event.getTarget(), event.getPos())) {
             event.setCanceled(true);
         }
