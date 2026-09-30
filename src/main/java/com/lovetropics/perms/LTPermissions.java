@@ -8,6 +8,7 @@ import com.lovetropics.lib.permission.role.RoleOverrideType;
 import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.command.FlyCommand;
 import com.lovetropics.perms.command.RoleCommand;
+import com.lovetropics.perms.command.WarnCommand;
 import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.NameDecorationOverride;
 import com.lovetropics.perms.override.JoinOverride;
@@ -36,6 +37,7 @@ import net.minecraft.server.waypoints.ServerWaypointManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.waypoints.Waypoint;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -46,10 +48,12 @@ import org.slf4j.Logger;
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Mod(LTPermissions.ID)
 public class LTPermissions {
     public static final String ID = "ltpermissions";
+    private static final Pattern QUALIFIER = Pattern.compile("-\\w+\\+\\d+");
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final RoleOverrideType<CommandOverride> COMMANDS = RoleOverrideType.register("commands", CommandOverride.CODEC)
@@ -154,6 +158,7 @@ public class LTPermissions {
         RoleCommand.register(dispatcher);
         FlyCommand.register(dispatcher);
         ProtectCommand.register(dispatcher);
+        WarnCommand.register(dispatcher);
 
         CommandAliasConfiguration aliasConfig = CommandAliasConfiguration.load();
         for (Map.Entry<String, String[]> entry : aliasConfig.aliases().entrySet()) {
@@ -194,5 +199,13 @@ public class LTPermissions {
 
     public static Identifier location(String path) {
         return Identifier.fromNamespaceAndPath(ID, path);
+    }
+
+    public static String getCompatVersion() {
+        return getCompatVersion(ModList.get().getModContainerById(ID).orElseThrow(IllegalStateException::new).getModInfo().getVersion().toString());
+    }
+
+    private static String getCompatVersion(String fullVersion) {
+        return QUALIFIER.matcher(fullVersion).replaceAll("");
     }
 }
