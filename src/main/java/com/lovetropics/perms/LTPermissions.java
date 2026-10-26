@@ -10,8 +10,9 @@ import com.lovetropics.perms.command.FlyCommand;
 import com.lovetropics.perms.command.RoleCommand;
 import com.lovetropics.perms.command.WarnCommand;
 import com.lovetropics.perms.config.RolesConfig;
-import com.lovetropics.perms.override.NameDecorationOverride;
 import com.lovetropics.perms.override.JoinOverride;
+import com.lovetropics.perms.override.NameDecorationOverride;
+import com.lovetropics.perms.override.PermissionNodesOverride;
 import com.lovetropics.perms.override.command.CommandOverride;
 import com.lovetropics.perms.protection.authority.shape.AuthorityShape;
 import com.lovetropics.perms.protection.command.ProtectCommand;
@@ -32,7 +33,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.permissions.PermissionSet;
-import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.waypoints.ServerWaypointManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.waypoints.Waypoint;
@@ -58,21 +58,27 @@ public class LTPermissions {
 
     public static final RoleOverrideType<CommandOverride> COMMANDS = RoleOverrideType.register("commands", CommandOverride.CODEC)
             .withBuilder(CommandOverride::build)
-            .withChangeListener(player -> {
-                MinecraftServer server = player.level().getServer();
-                if (server != null) {
-                    server.getCommands().sendCommands(player);
-                }
-            });
+            .withChangeListener(LTPermissions::resendCommands);
 
     public static final RoleOverrideType<NameDecorationOverride> NAME_DECORATION = RoleOverrideType.register("name_decoration", NameDecorationOverride.CODEC)
             .withBuilder(NameDecorationOverride::build)
             .withInitializeListener(LTPermissions::refreshNameDecoration)
             .withChangeListener(LTPermissions::refreshNameDecoration);
 
+    public static final RoleOverrideType<PermissionNodesOverride> PERMISSION_NODES = RoleOverrideType.register("permission_nodes", PermissionNodesOverride.CODEC)
+            .withBuilder(PermissionNodesOverride::build)
+            .withChangeListener(LTPermissions::resendCommands);
+
     private static void refreshNameDecoration(final ServerPlayer player) {
         player.refreshDisplayName();
         player.refreshTabListName();
+    }
+
+    private static void resendCommands(ServerPlayer player) {
+        MinecraftServer server = player.level().getServer();
+        if (server != null) {
+            server.getCommands().sendCommands(player);
+        }
     }
 
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
@@ -90,7 +96,6 @@ public class LTPermissions {
 
     private static final RoleLookup LOOKUP = new RoleLookup() {
         @Override
-        @Nonnull
         public RoleReader byEntity(Entity entity) {
             if (entity instanceof ServerPlayer) {
                 RoleReader roles = PlayerRoleManager.get().getRolesForOnline(((ServerPlayer) entity));
@@ -100,7 +105,6 @@ public class LTPermissions {
         }
 
         @Override
-        @Nonnull
         public RoleReader bySource(CommandSourceStack source) {
             Entity entity = source.getEntity();
             return entity != null ? this.byEntity(entity) : RoleReader.EMPTY;
