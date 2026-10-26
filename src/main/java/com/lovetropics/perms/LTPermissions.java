@@ -45,7 +45,6 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.ServerChatEvent;
 import org.slf4j.Logger;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -93,6 +92,8 @@ public class LTPermissions {
                 waypointManager.untrackWaypoint(player);
                 waypointManager.trackWaypoint(player);
             });
+
+    public static final RoleOverrideType<Boolean> BROADCAST_VOICE = RoleOverrideType.register("broadcast_voice", Codec.BOOL);
 
     private static final RoleLookup LOOKUP = new RoleLookup() {
         @Override

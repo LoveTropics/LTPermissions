@@ -61,9 +61,16 @@ repositories {
             includeGroup 'org.lovetropics'
         }
     }
-    repositories {
-        maven {
-            url "https://cursemaven.com"
+    maven {
+        url = 'https://maven.maxhenkel.de/repository/public'
+        content {
+            includeGroupAndSubgroups 'de.maxhenkel'
+        }
+    }
+    maven {
+        url = 'https://cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
         }
     }
     mavenLocal()
@@ -75,6 +82,10 @@ dependencies {
     jarJar(implementation("org.lovetropics:LTLib:$ltlib_version"))
 
     implementation "curse.maven:worldedit-225608:8272170"
+
+    implementation "de.maxhenkel.voicechat:voicechat-api:$voicechat_api_version"
+    runtimeOnly "curse.maven:simple-voice-chat-416089:9307199"
+
     // There maven jar is broken atm. Using CurseMaven until it's fixed.
 //    implementation("com.sk89q.worldedit:worldedit-neoforge-mc$worldedit_mc_version:$worldedit_version") {
 //        exclude group: "com.google.guava"
@@ -92,6 +103,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             neo_version_range      : neo_version_range,
             loader_version_range   : loader_version_range,
             worldedit_version_range: worldedit_version_range,
+            voicechat_api_version  : voicechat_api_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

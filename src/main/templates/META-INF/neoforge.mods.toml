@@ -32,3 +32,10 @@ mandatory = true
 versionRange = "${worldedit_version_range}"
 ordering = "NONE"
 side = "SERVER"
+
+[[dependencies.${ mod_id }]]
+modId = "voicechat_api"
+mandatory = false
+versionRange = "[${voicechat_api_version},)"
+ordering = "AFTER"
+side = "SERVER"
