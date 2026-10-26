@@ -1,5 +1,6 @@
 package com.lovetropics.perms.store;
 
+import com.google.common.collect.Iterators;
 import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.lib.permission.role.RoleOverrideReader;
 import com.lovetropics.lib.permission.role.RoleOverrideType;
@@ -18,7 +19,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public final class PlayerRoleSet implements RoleReader {
+public final class PlayerRoleSet {
     private final Role everyoneRole;
 
     @Nullable
@@ -32,6 +33,39 @@ public final class PlayerRoleSet implements RoleReader {
     public PlayerRoleSet(Role everyoneRole) {
         this.everyoneRole = everyoneRole;
         this.rebuildOverrides();
+    }
+
+    public RoleReader copy() {
+        Role everyoneRole = this.everyoneRole;
+        ObjectAVLTreeSet<Role> roles = new ObjectAVLTreeSet<>(this.roles);
+        RoleOverrideMap overrides = this.overrides;
+        return new RoleReader() {
+            @Override
+            public Iterator<Role> iterator() {
+                return Iterators.concat(
+                        roles.iterator(),
+                        Iterators.singletonIterator(everyoneRole)
+                );
+            }
+
+            @Override
+            public Stream<Role> stream() {
+                return Stream.concat(
+                        roles.stream(),
+                        Stream.of(everyoneRole)
+                );
+            }
+
+            @Override
+            public boolean has(Role role) {
+                return role == everyoneRole || roles.contains(role);
+            }
+
+            @Override
+            public RoleOverrideReader overrides() {
+                return overrides;
+            }
+        };
     }
 
     public void attachPlayer(ServerPlayer player, boolean initial) {
@@ -53,7 +87,10 @@ public final class PlayerRoleSet implements RoleReader {
 
     private void rebuildOverrides() {
         RoleOverrideMap.Builder builder = RoleOverrideMap.builder();
-        stream().forEach(role -> builder.addAll(role.overrides()));
+        for (Role role : roles) {
+            builder.addAll(role.overrides());
+        }
+        builder.addAll(everyoneRole.overrides());
         overrides = builder.build();
     }
 
@@ -77,25 +114,10 @@ public final class PlayerRoleSet implements RoleReader {
         return false;
     }
 
-    @Override
-    public Iterator<Role> iterator() {
-        return this.roles.iterator();
-    }
-
-    @Override
-    public Stream<Role> stream() {
-        return Stream.concat(
-                this.roles.stream(),
-                Stream.of(this.everyoneRole)
-        );
-    }
-
-    @Override
     public boolean has(Role role) {
         return role == this.everyoneRole || this.roles.contains(role);
     }
 
-    @Override
     public RoleOverrideReader overrides() {
         return this.overrides;
     }

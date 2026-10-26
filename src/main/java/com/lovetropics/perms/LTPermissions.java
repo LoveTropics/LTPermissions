@@ -99,7 +99,7 @@ public class LTPermissions {
         @Override
         public RoleReader byEntity(Entity entity) {
             if (entity instanceof ServerPlayer) {
-                RoleReader roles = PlayerRoleManager.get().getRolesForOnline(((ServerPlayer) entity));
+                RoleReader roles = PlayerRoleManager.get().getRolesForOnline((ServerPlayer) entity);
                 return roles != null ? roles : RoleReader.EMPTY;
             }
             return RoleReader.EMPTY;

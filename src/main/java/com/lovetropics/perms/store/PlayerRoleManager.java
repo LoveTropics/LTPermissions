@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
@@ -37,6 +39,8 @@ public final class PlayerRoleManager {
     private final PlayerRoleDatabase database;
 
     private final Map<UUID, PlayerRoleSet> onlinePlayerRoles = new Object2ObjectOpenHashMap<>();
+    // Updated from main thread, but may immutable states may be fetched from any thread
+    private final ConcurrentMap<UUID, RoleReader> visiblePlayerRoles = new ConcurrentHashMap<>();
 
     private PlayerRoleManager(PlayerRoleDatabase database) {
         this.database = database;
@@ -94,11 +98,12 @@ public final class PlayerRoleManager {
     }
 
     public void onPlayerLoad(NameAndId nameAndId) {
-        if (!this.onlinePlayerRoles.containsKey(nameAndId.id())) {
+        if (!onlinePlayerRoles.containsKey(nameAndId.id())) {
             // Load it, but delay initialization for now, as the player connection isn't quite ready
             PlayerRoleSet newRoles = new PlayerRoleSet(RolesConfig.get().everyone());
-            this.onlinePlayerRoles.put(nameAndId.id(), newRoles);
-            this.database.tryLoadInto(nameAndId.id(), newRoles);
+            onlinePlayerRoles.put(nameAndId.id(), newRoles);
+            visiblePlayerRoles.put(nameAndId.id(), newRoles.copy());
+            database.tryLoadInto(nameAndId.id(), newRoles);
         }
     }
 
@@ -108,15 +113,17 @@ public final class PlayerRoleManager {
             // Load it, but delay initialization for now, as the player connection isn't quite ready
             roles = new PlayerRoleSet(RolesConfig.get().everyone());
             onlinePlayerRoles.put(player.getUUID(), roles);
+            visiblePlayerRoles.put(player.getUUID(), roles.copy());
             database.tryLoadInto(player.getUUID(), roles);
         }
         roles.attachPlayer(player, true);
     }
 
     public void onPlayerLeave(ServerPlayer player) {
-        PlayerRoleSet roles = this.onlinePlayerRoles.remove(player.getUUID());
+        PlayerRoleSet roles = onlinePlayerRoles.remove(player.getUUID());
+        visiblePlayerRoles.remove(player.getUUID());
         if (roles != null && roles.isDirty()) {
-            this.database.trySave(player.getUUID(), roles);
+            database.trySave(player.getUUID(), roles);
             roles.setDirty(false);
         }
     }
@@ -139,6 +146,7 @@ public final class PlayerRoleManager {
             }
 
             onlinePlayerRoles.put(player.getUUID(), newRoles);
+            visiblePlayerRoles.put(player.getUUID(), newRoles.copy());
 
             newRoles.attachPlayer(player, false);
         }
@@ -147,47 +155,49 @@ public final class PlayerRoleManager {
     private void close(MinecraftServer server) {
         try {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                this.onPlayerLeave(player);
+                onPlayerLeave(player);
             }
         } finally {
-            IOUtils.closeQuietly(this.database);
+            IOUtils.closeQuietly(database);
         }
     }
 
     public <R> R updateRoles(UUID uuid, Function<PlayerRoleSet, R> update) {
-        PlayerRoleSet roles = this.onlinePlayerRoles.get(uuid);
+        PlayerRoleSet roles = onlinePlayerRoles.get(uuid);
         if (roles != null) {
-            return update.apply(roles);
+            R result = update.apply(roles);
+            visiblePlayerRoles.put(uuid, roles.copy());
+            return result;
         } else {
-            roles = this.loadOfflinePlayerRoles(uuid);
+            roles = loadOfflinePlayerRoles(uuid);
 
             try {
                 return update.apply(roles);
             } finally {
                 if (roles.isDirty()) {
-                    this.database.trySave(uuid, roles);
+                    database.trySave(uuid, roles);
                 }
             }
         }
     }
 
-    public PlayerRoleSet peekRoles(UUID uuid) {
-        PlayerRoleSet roles = this.onlinePlayerRoles.get(uuid);
-        return roles != null ? roles : this.loadOfflinePlayerRoles(uuid);
+    public RoleReader peekRoles(UUID uuid) {
+        RoleReader roles = visiblePlayerRoles.get(uuid);
+        return roles != null ? roles : loadOfflinePlayerRoles(uuid).copy();
     }
 
     private PlayerRoleSet loadOfflinePlayerRoles(UUID uuid) {
         RolesConfig config = RolesConfig.get();
 
         PlayerRoleSet roles = new PlayerRoleSet(config.everyone());
-        this.database.tryLoadInto(uuid, roles);
+        database.tryLoadInto(uuid, roles);
 
         return roles;
     }
 
     @Nullable
     public RoleReader getRolesForOnline(ServerPlayer player) {
-        return this.onlinePlayerRoles.get(player.getUUID());
+        return visiblePlayerRoles.get(player.getUUID());
     }
 
     public List<UUID> listPlayersWithRole(Role role) {
@@ -208,7 +218,7 @@ public final class PlayerRoleManager {
 
     public int countOnlinePlayersWith(Role role) {
         int count = 0;
-        for (PlayerRoleSet roles : this.onlinePlayerRoles.values()) {
+        for (PlayerRoleSet roles : onlinePlayerRoles.values()) {
             if (roles.has(role)) {
                 count++;
             }

@@ -1,10 +1,10 @@
 package com.lovetropics.perms.mixin;
 
 import com.lovetropics.lib.permission.role.Role;
+import com.lovetropics.lib.permission.role.RoleReader;
 import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.override.JoinOverride;
 import com.lovetropics.perms.store.PlayerRoleManager;
-import com.lovetropics.perms.store.PlayerRoleSet;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -54,7 +54,7 @@ public abstract class PlayerListMixin {
 
     @Inject(method = "isOp", at = @At("HEAD"), cancellable = true)
     private void checkIsOp(NameAndId nameAndId, CallbackInfoReturnable<Boolean> cir) {
-        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(nameAndId.id());
+        RoleReader roles = PlayerRoleManager.get().peekRoles(nameAndId.id());
         PermissionLevel opLevel = roles.overrides().getOrNull(LTPermissions.OP_LEVEL);
         if (opLevel != null && opLevel.isEqualOrHigherThan(PermissionLevel.OWNERS)) {
             cir.setReturnValue(true);
@@ -81,7 +81,7 @@ public abstract class PlayerListMixin {
         }
 
         int playersOnline = players.size();
-        PlayerRoleSet roles = PlayerRoleManager.get().peekRoles(gameProfile.id());
+        RoleReader roles = PlayerRoleManager.get().peekRoles(gameProfile.id());
 
         JoinOverride userOverrides = roles
                 .overrides()
