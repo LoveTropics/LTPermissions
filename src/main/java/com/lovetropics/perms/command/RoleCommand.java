@@ -5,7 +5,7 @@ import com.lovetropics.lib.permission.role.Role;
 import com.lovetropics.perms.config.RolesConfig;
 import com.lovetropics.perms.override.command.CommandOverride;
 import com.lovetropics.perms.store.PlayerRoleManager;
-import com.lovetropics.perms.store.PlayerRoleSet;
+import com.lovetropics.perms.store.PlayerRoleHolder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,7 +23,6 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.players.NameAndId;
 
 import javax.annotation.Nullable;
@@ -56,7 +55,7 @@ public final class RoleCommand {
                         CommandSourceStack source = ctx.getSource();
                         Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
-                        return updateRoles(source, targets, roleName, PlayerRoleSet::add, "'%s' assigned to %s players");
+                        return updateRoles(source, targets, roleName, PlayerRoleHolder::add, "'%s' assigned to %s players");
                     })
                 )))
                 .then(literal("remove")
@@ -66,7 +65,7 @@ public final class RoleCommand {
                         CommandSourceStack source = ctx.getSource();
                         Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
-                        return updateRoles(source, targets, roleName, PlayerRoleSet::remove, "'%s' removed from %s players");
+                        return updateRoles(source, targets, roleName, PlayerRoleHolder::remove, "'%s' removed from %s players");
                     })
                 )))
                 .then(literal("list")
@@ -91,7 +90,7 @@ public final class RoleCommand {
     }
     // @formatter:on
 
-    private static int updateRoles(CommandSourceStack source, Collection<NameAndId> players, String roleName, BiPredicate<PlayerRoleSet, Role> apply, String success) throws CommandSyntaxException {
+    private static int updateRoles(CommandSourceStack source, Collection<NameAndId> players, String roleName, BiPredicate<PlayerRoleHolder, Role> apply, String success) throws CommandSyntaxException {
         Role role = getAssignableRole(roleName);
         requireHasPower(source, role);
 

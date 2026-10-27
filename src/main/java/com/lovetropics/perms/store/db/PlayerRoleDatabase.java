@@ -1,11 +1,11 @@
 package com.lovetropics.perms.store.db;
 
-import com.lovetropics.perms.config.RolesConfig;
-import com.lovetropics.perms.store.PlayerRoleSet;
+import com.lovetropics.perms.store.PackedRoles;
 import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -14,6 +14,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,51 +32,48 @@ public final class PlayerRoleDatabase implements Closeable {
         return new PlayerRoleDatabase(binary);
     }
 
-    public void tryLoadInto(UUID uuid, PlayerRoleSet roles) {
+    public Optional<PackedRoles> tryLoad(UUID uuid) {
         try {
-            ByteBuffer bytes = this.binary.get(uuid);
+            ByteBuffer bytes = binary.get(uuid);
             if (bytes != null) {
                 try {
-                    deserializeRoles(roles, bytes);
+                    return Optional.of(deserializeRoles(bytes));
                 } catch (IOException e) {
                     LOGGER.error("Failed to deserialize roles for {}, dropping", uuid, e);
-                    this.binary.remove(uuid);
+                    binary.remove(uuid);
                 }
             }
         } catch (IOException e) {
             LOGGER.error("Failed to load roles for {}", uuid, e);
         }
+        return Optional.empty();
     }
 
-    public void trySave(UUID uuid, PlayerRoleSet roles) {
+    public void trySave(UUID uuid, PackedRoles roles) {
         try {
             if (!roles.isEmpty()) {
                 ByteBuffer bytes = serializeRoles(roles);
-                this.binary.put(uuid, bytes);
+                binary.put(uuid, bytes);
             } else {
-                this.binary.remove(uuid);
+                binary.remove(uuid);
             }
         } catch (IOException e) {
             LOGGER.error("Failed to save roles for {}", uuid, e);
         }
     }
 
-    private static ByteBuffer serializeRoles(PlayerRoleSet roles) throws IOException {
-        CompoundTag nbt = new CompoundTag();
-        nbt.put("roles", roles.serialize());
-
+    private static ByteBuffer serializeRoles(PackedRoles roles) throws IOException {
+        CompoundTag nbt = (CompoundTag) PackedRoles.CODEC.encodeStart(NbtOps.INSTANCE, roles).getOrThrow(IOException::new);
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             NbtIo.writeCompressed(nbt, output);
             return ByteBuffer.wrap(output.toByteArray());
         }
     }
 
-    private static void deserializeRoles(PlayerRoleSet roles, ByteBuffer bytes) throws IOException {
-        RolesConfig config = RolesConfig.get();
-
+    private static PackedRoles deserializeRoles(ByteBuffer bytes) throws IOException {
         try (ByteArrayInputStream input = new ByteArrayInputStream(bytes.array())) {
             CompoundTag nbt = NbtIo.readCompressed(input, NbtAccounter.unlimitedHeap());
-            roles.deserialize(config, nbt.getListOrEmpty("roles"));
+            return PackedRoles.CODEC.parse(NbtOps.INSTANCE, nbt).getOrThrow(IOException::new);
         }
     }
 
@@ -85,6 +83,6 @@ public final class PlayerRoleDatabase implements Closeable {
 
     @Override
     public void close() throws IOException {
-        this.binary.close();
+        binary.close();
     }
 }

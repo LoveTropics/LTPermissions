@@ -41,18 +41,6 @@ public final class RoleOverrideMap implements RoleOverrideReader {
         return new Builder();
     }
 
-    public void notifyInitialize(ServerPlayer player) {
-        for (RoleOverrideType<?> override : combinedOverrides.keySet()) {
-            override.notifyInitialize(player);
-        }
-    }
-
-    public void notifyChange(ServerPlayer player, Set<RoleOverrideType<?>> oldOverrides) {
-        for (RoleOverrideType<?> override : Sets.union(combinedOverrides.keySet(), oldOverrides)) {
-            override.notifyChange(player);
-        }
-    }
-
     @Override
     @Nullable
     @SuppressWarnings("unchecked")
