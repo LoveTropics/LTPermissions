@@ -9,7 +9,6 @@ import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;
@@ -22,14 +21,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @EventBusSubscriber(modid = LTPermissions.ID)
 public final class AuthorityBehaviorConfigs {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final CodecRegistry<Identifier, AuthorityBehaviorConfig> REGISTRY = CodecRegistry.idKeys();
+    public static final CodecRegistry<Identifier, AuthorityBehavior> REGISTRY = CodecRegistry.idKeys();
 
     private static final FileToIdConverter FILE_TO_ID_CONVERTER = FileToIdConverter.json("authority_behaviors");
 
@@ -47,8 +45,8 @@ public final class AuthorityBehaviorConfigs {
                         }, gameExecutor));
     }
 
-    private static Map<Identifier, AuthorityBehaviorConfig> load(ResourceManager resourceManager) {
-        Map<Identifier, AuthorityBehaviorConfig> result = new Object2ObjectOpenHashMap<>();
+    private static Map<Identifier, AuthorityBehavior> load(ResourceManager resourceManager) {
+        Map<Identifier, AuthorityBehavior> result = new Object2ObjectOpenHashMap<>();
 
         Map<Identifier, Resource> resources = FILE_TO_ID_CONVERTER.listMatchingResources(resourceManager);
         for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
@@ -66,10 +64,10 @@ public final class AuthorityBehaviorConfigs {
         return result;
     }
 
-    private static DataResult<AuthorityBehaviorConfig> loadConfig(Resource resource) throws IOException {
+    private static DataResult<AuthorityBehavior> loadConfig(Resource resource) throws IOException {
         try (BufferedReader reader = resource.openAsReader()) {
             JsonElement json = StrictJsonParser.parse(reader);
-            return AuthorityBehaviorConfig.CODEC.parse(JsonOps.INSTANCE, json);
+            return AuthorityBehavior.CODEC.parse(JsonOps.INSTANCE, json);
         }
     }
 

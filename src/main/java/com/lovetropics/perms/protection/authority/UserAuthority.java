@@ -5,7 +5,7 @@ import com.lovetropics.perms.protection.EventFilter;
 import com.lovetropics.perms.protection.ProtectionExclusions;
 import com.lovetropics.perms.protection.ProtectionRule;
 import com.lovetropics.perms.protection.ProtectionRuleMap;
-import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorMap;
+import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorList;
 import com.lovetropics.perms.protection.authority.shape.AuthorityShape;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,25 +15,27 @@ public final class UserAuthority implements Authority {
             Codec.STRING.fieldOf("key").forGetter(a -> a.key),
             Codec.INT.fieldOf("level").forGetter(a -> a.level),
             AuthorityShapes.CODEC.fieldOf("shapes").forGetter(a -> a.shapes),
-            ProtectionRuleMap.CODEC.fieldOf("rules").forGetter(a -> a.rules),
+            ProtectionRuleMap.CODEC.fieldOf("rules").forGetter(a -> a.ruleOverrides),
             ProtectionExclusions.CODEC.fieldOf("exclusions").forGetter(a -> a.exclusions),
-            AuthorityBehaviorMap.CODEC.fieldOf("behavior").forGetter(a -> a.behavior)
+            AuthorityBehaviorList.CODEC.fieldOf("behavior").forGetter(a -> a.behavior)
     ).apply(i, UserAuthority::new));
 
     private final String key;
     private final int level;
     private final AuthorityShapes shapes;
-    private final ProtectionRuleMap rules;
+    private final ProtectionRuleMap composedRules;
+    private final ProtectionRuleMap ruleOverrides;
     private final ProtectionExclusions exclusions;
-    private final AuthorityBehaviorMap behavior;
+    private final AuthorityBehaviorList behavior;
 
     private final EventFilter filterWithExclusions;
 
-    UserAuthority(String key, int level, AuthorityShapes shapes, ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behavior) {
+    UserAuthority(String key, int level, AuthorityShapes shapes, ProtectionRuleMap ruleOverrides, ProtectionExclusions exclusions, AuthorityBehaviorList behavior) {
         this.key = key;
         this.level = level;
         this.shapes = shapes;
-        this.rules = rules;
+        composedRules = behavior.buildRules(ruleOverrides);
+        this.ruleOverrides = ruleOverrides;
         this.exclusions = exclusions;
         this.behavior = behavior;
 
@@ -41,7 +43,7 @@ public final class UserAuthority implements Authority {
     }
 
     UserAuthority(String key, int level, AuthorityShapes shapes) {
-        this(key, level, shapes, ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorMap.EMPTY);
+        this(key, level, shapes, ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorList.EMPTY);
     }
 
     public static UserAuthority create(String key) {
@@ -49,8 +51,8 @@ public final class UserAuthority implements Authority {
     }
 
     @Override
-    public UserAuthority withRule(ProtectionRule rule, PermissionResult result) {
-        return new UserAuthority(this.key, this.level, this.shapes, this.rules.with(rule, result), this.exclusions, this.behavior);
+    public UserAuthority withRuleOverride(ProtectionRule rule, PermissionResult result) {
+        return new UserAuthority(this.key, this.level, this.shapes, this.ruleOverrides.with(rule, result), this.exclusions, this.behavior);
     }
 
     @Override
@@ -58,19 +60,19 @@ public final class UserAuthority implements Authority {
         if (this.exclusions == exclusions) {
             return this;
         }
-        return new UserAuthority(this.key, this.level, this.shapes, this.rules, exclusions, this.behavior);
+        return new UserAuthority(this.key, this.level, this.shapes, this.ruleOverrides, exclusions, this.behavior);
     }
 
     @Override
-    public Authority withBehavior(AuthorityBehaviorMap behavior) {
+    public Authority withBehavior(AuthorityBehaviorList behavior) {
         if (this.behavior == behavior) {
             return this;
         }
-        return new UserAuthority(this.key, this.level, this.shapes, this.rules, this.exclusions, behavior);
+        return new UserAuthority(this.key, this.level, this.shapes, this.ruleOverrides, this.exclusions, behavior);
     }
 
     public UserAuthority withLevel(int level) {
-        return new UserAuthority(this.key, level, this.shapes, this.rules, this.exclusions, this.behavior);
+        return new UserAuthority(this.key, level, this.shapes, this.ruleOverrides, this.exclusions, this.behavior);
     }
 
     public UserAuthority addShape(String key, AuthorityShape shape) {
@@ -85,7 +87,7 @@ public final class UserAuthority implements Authority {
         if (this.shapes == shape) {
             return this;
         }
-        return new UserAuthority(this.key, this.level, shape, this.rules, this.exclusions, this.behavior);
+        return new UserAuthority(this.key, this.level, shape, this.ruleOverrides, this.exclusions, this.behavior);
     }
 
     @Override
@@ -100,7 +102,12 @@ public final class UserAuthority implements Authority {
 
     @Override
     public ProtectionRuleMap rules() {
-        return this.rules;
+        return this.composedRules;
+    }
+
+    @Override
+    public ProtectionRuleMap ruleOverrides() {
+        return this.ruleOverrides;
     }
 
     @Override
@@ -114,7 +121,7 @@ public final class UserAuthority implements Authority {
     }
 
     @Override
-    public AuthorityBehaviorMap behavior() {
+    public AuthorityBehaviorList behavior() {
         return this.behavior;
     }
 

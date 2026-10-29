@@ -39,6 +39,15 @@ public final class ProtectionRuleMap {
         }
     }
 
+    public ProtectionRuleMap withAll(ProtectionRuleMap other) {
+        if (other.isEmpty()) {
+            return this;
+        }
+        ProtectionRuleMap map = copy();
+        map.map.putAll(other.map);
+        return map;
+    }
+
     public ProtectionRuleMap with(ProtectionRule rule, PermissionResult result) {
         if (this.test(rule) == result) {
             return this;

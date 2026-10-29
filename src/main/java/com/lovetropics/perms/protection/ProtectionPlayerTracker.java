@@ -2,7 +2,8 @@ package com.lovetropics.perms.protection;
 
 import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.protection.authority.Authority;
-import com.lovetropics.perms.protection.authority.behavior.AuthorityBehavior;
+import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorList;
+import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehavior;
 import com.lovetropics.perms.protection.authority.map.AuthorityMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -25,7 +26,7 @@ public final class ProtectionPlayerTracker {
     private final Object2ObjectMap<UUID, Tracker> trackers = new Object2ObjectOpenHashMap<>();
     private final Set<UUID> queuedReset = new ObjectOpenHashSet<>();
 
-    private final Set<AuthorityBehavior> lastBehaviors = new ReferenceArraySet<>();
+    private final Set<AuthorityBehaviorList> lastBehaviors = new ReferenceArraySet<>();
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
@@ -104,18 +105,18 @@ public final class ProtectionPlayerTracker {
                 final EventSource source = EventSource.forEntity(player);
                 for (final Authority authority : authorities) {
                     if (authority.eventFilter().accepts(source)) {
-                        tracker.behaviors.add(authority.behavior().getBehavior());
+                        tracker.behaviors.add(authority.behavior());
                     }
                 }
             }
 
-            for (final AuthorityBehavior behavior : lastBehaviors) {
+            for (final AuthorityBehaviorList behavior : lastBehaviors) {
                 if (!tracker.behaviors.contains(behavior)) {
                     behavior.onPlayerExit(player);
                 }
             }
 
-            for (final AuthorityBehavior behavior : tracker.behaviors) {
+            for (final AuthorityBehaviorList behavior : tracker.behaviors) {
                 if (!lastBehaviors.contains(behavior)) {
                     behavior.onPlayerEnter(player);
                 }
@@ -128,14 +129,14 @@ public final class ProtectionPlayerTracker {
     private void clearTracker(ServerPlayer player) {
         Tracker tracker = trackers.remove(player.getUUID());
         if (tracker != null) {
-            for (AuthorityBehavior behavior : tracker.behaviors) {
+            for (AuthorityBehaviorList behavior : tracker.behaviors) {
                 behavior.onPlayerExit(player);
             }
         }
     }
 
     private static final class Tracker {
-        private final Set<AuthorityBehavior> behaviors = new ReferenceArraySet<>();
+        private final Set<AuthorityBehaviorList> behaviors = new ReferenceArraySet<>();
         private long lastBlockPos = -1;
     }
 }

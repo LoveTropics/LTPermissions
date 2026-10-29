@@ -5,7 +5,7 @@ import com.lovetropics.perms.protection.EventFilter;
 import com.lovetropics.perms.protection.ProtectionExclusions;
 import com.lovetropics.perms.protection.ProtectionRule;
 import com.lovetropics.perms.protection.ProtectionRuleMap;
-import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorMap;
+import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceKey;
@@ -18,17 +18,19 @@ public final class BuiltinAuthority implements Authority {
     private final String key;
     private final int level;
     private final EventFilter filter;
-    private final ProtectionRuleMap rules;
+    private final ProtectionRuleMap composedRules;
+    private final ProtectionRuleMap ruleOverrides;
     private final ProtectionExclusions exclusions;
-    private final AuthorityBehaviorMap behavior;
+    private final AuthorityBehaviorList behavior;
 
     private final EventFilter filterWithExclusions;
 
-    private BuiltinAuthority(String key, int level, EventFilter filter, ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behavior) {
+    private BuiltinAuthority(String key, int level, EventFilter filter, ProtectionRuleMap ruleOverrides, ProtectionExclusions exclusions, AuthorityBehaviorList behavior) {
         this.key = key;
         this.level = level;
         this.filter = filter;
-        this.rules = rules;
+        composedRules = behavior.buildRules(ruleOverrides);
+        this.ruleOverrides = ruleOverrides;
         this.exclusions = exclusions;
         this.behavior = behavior;
 
@@ -36,10 +38,10 @@ public final class BuiltinAuthority implements Authority {
     }
 
     public static BuiltinAuthority universe() {
-        return universe(ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorMap.EMPTY);
+        return universe(ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorList.EMPTY);
     }
 
-    private static BuiltinAuthority universe(ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behavior) {
+    private static BuiltinAuthority universe(ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorList behavior) {
         return new BuiltinAuthority("universe", UNIVERSE_LEVEL, EventFilter.universe(), rules, exclusions, behavior);
     }
 
@@ -48,10 +50,10 @@ public final class BuiltinAuthority implements Authority {
     }
 
     public static BuiltinAuthority dimension(ResourceKey<Level> dimension) {
-        return dimension(dimension, ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorMap.EMPTY);
+        return dimension(dimension, ProtectionRuleMap.EMPTY, ProtectionExclusions.EMPTY, AuthorityBehaviorList.EMPTY);
     }
 
-    public static BuiltinAuthority dimension(ResourceKey<Level> dimension, ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behavior) {
+    public static BuiltinAuthority dimension(ResourceKey<Level> dimension, ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorList behavior) {
         String key = dimension.identifier().getPath();
         return new BuiltinAuthority(key, DIMENSION_LEVEL, EventFilter.dimension(dimension), rules, exclusions, behavior);
     }
@@ -62,15 +64,15 @@ public final class BuiltinAuthority implements Authority {
 
     private static Codec<BuiltinAuthority> codec(Parse parse) {
         return RecordCodecBuilder.create(i -> i.group(
-                ProtectionRuleMap.CODEC.optionalFieldOf("rules", ProtectionRuleMap.EMPTY).forGetter(a -> a.rules),
+                ProtectionRuleMap.CODEC.optionalFieldOf("rules", ProtectionRuleMap.EMPTY).forGetter(a -> a.ruleOverrides),
                 ProtectionExclusions.CODEC.optionalFieldOf("exclusions", ProtectionExclusions.EMPTY).forGetter(a -> a.exclusions),
-                AuthorityBehaviorMap.CODEC.optionalFieldOf("behavior", AuthorityBehaviorMap.EMPTY).forGetter(a -> a.behavior)
+                AuthorityBehaviorList.CODEC.optionalFieldOf("behavior", AuthorityBehaviorList.EMPTY).forGetter(a -> a.behavior)
         ).apply(i, parse::create));
     }
 
     @Override
-    public BuiltinAuthority withRule(ProtectionRule rule, PermissionResult result) {
-        return new BuiltinAuthority(this.key, this.level, this.filter, this.rules.with(rule, result), this.exclusions, this.behavior);
+    public BuiltinAuthority withRuleOverride(ProtectionRule rule, PermissionResult result) {
+        return new BuiltinAuthority(this.key, this.level, this.filter, this.ruleOverrides.with(rule, result), this.exclusions, this.behavior);
     }
 
     @Override
@@ -78,15 +80,15 @@ public final class BuiltinAuthority implements Authority {
         if (this.exclusions == exclusions) {
             return this;
         }
-        return new BuiltinAuthority(this.key, this.level, this.filter, this.rules, exclusions, this.behavior);
+        return new BuiltinAuthority(this.key, this.level, this.filter, this.ruleOverrides, exclusions, this.behavior);
     }
 
     @Override
-    public Authority withBehavior(AuthorityBehaviorMap behavior) {
+    public Authority withBehavior(AuthorityBehaviorList behavior) {
         if (this.behavior == behavior) {
             return this;
         }
-        return new BuiltinAuthority(this.key, this.level, this.filter, this.rules, this.exclusions, behavior);
+        return new BuiltinAuthority(this.key, this.level, this.filter, this.ruleOverrides, this.exclusions, behavior);
     }
 
     @Override
@@ -101,7 +103,12 @@ public final class BuiltinAuthority implements Authority {
 
     @Override
     public ProtectionRuleMap rules() {
-        return this.rules;
+        return this.composedRules;
+    }
+
+    @Override
+    public ProtectionRuleMap ruleOverrides() {
+        return this.ruleOverrides;
     }
 
     @Override
@@ -115,7 +122,7 @@ public final class BuiltinAuthority implements Authority {
     }
 
     @Override
-    public AuthorityBehaviorMap behavior() {
+    public AuthorityBehaviorList behavior() {
         return this.behavior;
     }
 
@@ -125,6 +132,6 @@ public final class BuiltinAuthority implements Authority {
     }
 
     interface Parse {
-        BuiltinAuthority create(ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorMap behaviors);
+        BuiltinAuthority create(ProtectionRuleMap rules, ProtectionExclusions exclusions, AuthorityBehaviorList behaviors);
     }
 }

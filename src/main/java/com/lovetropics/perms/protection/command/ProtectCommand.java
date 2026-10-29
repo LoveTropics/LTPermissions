@@ -14,7 +14,6 @@ import com.lovetropics.perms.protection.command.argument.AuthorityShapeArgument;
 import com.lovetropics.perms.protection.command.argument.PermissionResultArgument;
 import com.lovetropics.perms.protection.command.argument.ProtectionRuleArgument;
 import com.lovetropics.perms.protection.command.argument.RoleArgument;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.LiteralMessage;
@@ -249,7 +248,7 @@ public final class ProtectCommand {
         PermissionResult result = PermissionResultArgument.get(context, "result");
 
         ProtectionManager protection = protection(context);
-        protection.replaceAuthority(authority, authority.withRule(rule, result));
+        protection.replaceAuthority(authority, authority.withRuleOverride(rule, result));
 
         context.getSource().sendSuccess(() -> Component.literal("Set rule ")
                 .append(Component.literal(rule.key() + "=").append(result.getName()).withStyle(ChatFormatting.AQUA))

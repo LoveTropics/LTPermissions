@@ -1,6 +1,6 @@
 package com.lovetropics.perms.protection.command.argument;
 
-import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehaviorConfig;
+import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehavior;
 import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehaviorConfigs;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -29,9 +29,9 @@ public final class AuthorityBehaviorArgument {
                 });
     }
 
-    public static Pair<Identifier, AuthorityBehaviorConfig> get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+    public static Pair<Identifier, AuthorityBehavior> get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
         Identifier id = IdentifierArgument.getId(context, name);
-        AuthorityBehaviorConfig config = AuthorityBehaviorConfigs.REGISTRY.get(id);
+        AuthorityBehavior config = AuthorityBehaviorConfigs.REGISTRY.get(id);
         if (config == null) {
             throw BEHAVIOR_DOES_NOT_EXIST.create(id);
         }

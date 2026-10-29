@@ -6,8 +6,7 @@ import com.lovetropics.perms.protection.EventFilter;
 import com.lovetropics.perms.protection.ProtectionExclusions;
 import com.lovetropics.perms.protection.ProtectionRule;
 import com.lovetropics.perms.protection.ProtectionRuleMap;
-import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorMap;
-import com.mojang.authlib.GameProfile;
+import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.players.NameAndId;
 
@@ -16,23 +15,25 @@ public interface Authority extends Comparable<Authority> {
 
     int level();
 
+    ProtectionRuleMap ruleOverrides();
+
     ProtectionRuleMap rules();
 
     EventFilter eventFilter();
 
     ProtectionExclusions exclusions();
 
-    AuthorityBehaviorMap behavior();
+    AuthorityBehaviorList behavior();
 
     default boolean hasBehavior() {
         return !this.behavior().isEmpty();
     }
 
-    Authority withRule(ProtectionRule rule, PermissionResult result);
+    Authority withRuleOverride(ProtectionRule rule, PermissionResult result);
 
     Authority withExclusions(ProtectionExclusions exclusions);
 
-    Authority withBehavior(AuthorityBehaviorMap behavior);
+    Authority withBehavior(AuthorityBehaviorList behavior);
 
     default Authority addExclusion(NameAndId player) {
         return this.withExclusions(this.exclusions().addPlayer(player));
@@ -63,7 +64,7 @@ public interface Authority extends Comparable<Authority> {
     }
 
     default boolean isEmpty() {
-        return this.rules().isEmpty() && this.exclusions().isEmpty() && this.behavior().isEmpty();
+        return this.ruleOverrides().isEmpty() && this.exclusions().isEmpty() && this.behavior().isEmpty();
     }
 
     @Override

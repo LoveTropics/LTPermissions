@@ -6,7 +6,7 @@ import com.lovetropics.perms.LTPermissions;
 import com.lovetropics.perms.protection.authority.Authority;
 import com.lovetropics.perms.protection.authority.BuiltinAuthority;
 import com.lovetropics.perms.protection.authority.UserAuthority;
-import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorMap;
+import com.lovetropics.perms.protection.authority.behavior.AuthorityBehaviorList;
 import com.lovetropics.perms.protection.authority.behavior.config.AuthorityBehaviorConfigs;
 import com.lovetropics.perms.protection.authority.map.AuthorityMap;
 import com.lovetropics.perms.protection.authority.map.IndexedAuthorityMap;
@@ -168,7 +168,7 @@ public final class ProtectionManager extends SavedData {
         }
 
         for (Authority authority : authoritiesWithBehavior) {
-            AuthorityBehaviorMap behavior = authority.behavior().rebuild();
+            AuthorityBehaviorList behavior = authority.behavior().reload();
             this.replaceAuthority(authority, authority.withBehavior(behavior));
         }
     }
