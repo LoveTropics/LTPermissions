@@ -166,7 +166,7 @@ public class LTPermissions {
         WarnCommand.register(dispatcher);
 
         CommandAliasConfiguration aliasConfig = CommandAliasConfiguration.load();
-        for (Map.Entry<String, String[]> entry : aliasConfig.aliases().entrySet()) {
+        for (Map.Entry<String, CommandAliasConfiguration.Alias> entry : aliasConfig.aliases().entrySet()) {
             String[] literals = entry.getKey().split(" ");
 
             LiteralArgumentBuilder<CommandSourceStack>[] nodes = new LiteralArgumentBuilder[literals.length];
@@ -174,11 +174,14 @@ public class LTPermissions {
                 nodes[i] = Commands.literal(literals[i]);
             }
 
-            String[] commands = entry.getValue();
+            CommandAliasConfiguration.Alias alias = entry.getValue();
             LiteralArgumentBuilder<CommandSourceStack> last = nodes[nodes.length - 1];
             last.executes(context -> {
-                CommandSourceStack source = context.getSource().withPermission(PermissionSet.ALL_PERMISSIONS).withSuppressedOutput();
-                for (String command : commands) {
+                CommandSourceStack source = context.getSource().withPermission(PermissionSet.ALL_PERMISSIONS);
+                if (alias.suppressOutput()) {
+                    source = source.withSuppressedOutput();
+                }
+                for (String command : alias.commands()) {
                     source.getServer().getCommands().performPrefixedCommand(source, command);
                 }
                 return Command.SINGLE_SUCCESS;

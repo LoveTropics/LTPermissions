@@ -1,24 +1,28 @@
 package com.lovetropics.perms;
 
-import com.lovetropics.lib.codec.MoreCodecs;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StrictJsonParser;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public record CommandAliasConfiguration(Map<String, String[]> aliases) {
+public record CommandAliasConfiguration(Map<String, Alias> aliases) {
     private static final CommandAliasConfiguration EMPTY = new CommandAliasConfiguration(Map.of());
 
-    public static final Codec<CommandAliasConfiguration> CODEC = Codec.unboundedMap(Codec.STRING, MoreCodecs.arrayOrUnit(Codec.STRING, String[]::new))
+    public static final Codec<CommandAliasConfiguration> CODEC = Codec.unboundedMap(Codec.STRING, Alias.CODEC)
             .xmap(CommandAliasConfiguration::new, CommandAliasConfiguration::aliases);
 
-    private static final ThreadLocal<ResourceManager> RESOURCE_MANAGER = new ThreadLocal<>();
+    private static final ThreadLocal<@Nullable ResourceManager> RESOURCE_MANAGER = new ThreadLocal<>();
 
     public static void setResourceManager(ResourceManager resourceManager) {
         RESOURCE_MANAGER.set(resourceManager);
@@ -46,5 +50,22 @@ public record CommandAliasConfiguration(Map<String, String[]> aliases) {
             LTPermissions.LOGGER.warn("Failed to load command_aliases.json configuration", e);
             return EMPTY;
         }
+    }
+
+    public record Alias(
+            List<String> commands,
+            boolean suppressOutput
+    ) {
+        private static final Codec<List<String>> COMMANDS_CODEC = ExtraCodecs.compactListCodec(Codec.STRING);
+
+        public static final Codec<Alias> FULL_CODEC = RecordCodecBuilder.create(i -> i.group(
+                COMMANDS_CODEC.fieldOf("commands").forGetter(Alias::commands),
+                Codec.BOOL.optionalFieldOf("suppress_output", true).forGetter(Alias::suppressOutput)
+        ).apply(i, Alias::new));
+
+        public static final Codec<Alias> CODEC = Codec.either(COMMANDS_CODEC, FULL_CODEC).xmap(
+                either -> either.map(commands -> new Alias(commands, true), alias -> alias),
+                alias -> alias.suppressOutput ? Either.left(alias.commands) : Either.right(alias)
+        );
     }
 }
