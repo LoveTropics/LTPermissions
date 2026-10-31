@@ -18,7 +18,7 @@ public final class MutableRoleSet implements Iterable<Role> {
 
     public RoleReader bakeReader(Role everyoneRole) {
         ObjectAVLTreeSet<Role> roles = new ObjectAVLTreeSet<>(this.roles);
-        RoleOverrideMap overrides = buildOverrides();
+        RoleOverrideMap overrides = buildOverrides(everyoneRole);
         return new RoleReader() {
             @Override
             public Iterator<Role> iterator() {
@@ -48,11 +48,12 @@ public final class MutableRoleSet implements Iterable<Role> {
         };
     }
 
-    private RoleOverrideMap buildOverrides() {
+    private RoleOverrideMap buildOverrides(Role everyoneRole) {
         RoleOverrideMap.Builder builder = RoleOverrideMap.builder();
         for (Role role : this) {
             builder.addAll(role.overrides());
         }
+        builder.addAll(everyoneRole.overrides());
         return builder.build();
     }
 
