@@ -11,13 +11,8 @@ base {
     archivesName = mod_id
 }
 
-ext.buildnumber = 0
-version = "${mod_version}"
-
-if (System.getenv('GITHUB_RUN_NUMBER')) {
-    project.buildnumber = System.getenv('GITHUB_RUN_NUMBER') as Integer
-    version = "${mod_version}+${buildnumber}-gha"
-}
+def env = System.getenv()
+version = "$mod_version-SNAPSHOT"
 
 neoForge {
     version = project.neo_version
@@ -56,7 +51,7 @@ repositories {
         }
     }
     maven {
-        url = 'https://maven.gegy.dev/releases'
+        url = 'https://maven.lovetropics.org/releases'
         content {
             includeGroup 'org.lovetropics'
         }
@@ -128,5 +123,27 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        if (env.MAVEN_URL) {
+            maven {
+                credentials {
+                    username env.MAVEN_USERNAME
+                    password env.MAVEN_PASSWORD
+                }
+                url env.MAVEN_URL
+            }
+        } else {
+            mavenLocal()
+        }
     }
 }
