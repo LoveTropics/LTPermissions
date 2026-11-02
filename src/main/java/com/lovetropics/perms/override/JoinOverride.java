@@ -1,9 +1,14 @@
 package com.lovetropics.perms.override;
 
+import com.lovetropics.lib.permission.PermissionsApi;
+import com.lovetropics.lib.permission.role.RoleReader;
+import com.lovetropics.perms.LTPermissions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 
 import java.util.Optional;
 
@@ -27,6 +32,20 @@ public record JoinOverride(boolean allowsJoining, Component notWhitelistedMessag
                 Codec.INT.fieldOf("limit").forGetter(JoinData::limit),
                 ComponentSerialization.CODEC.fieldOf("message").forGetter(JoinData::message)
         ).apply(instance, JoinData::new));
+    }
 
+    public static void onChange(ServerPlayer serverPlayer) {
+        if (!serverPlayer.level().getServer().isEnforceWhitelist()) {
+            return;
+        }
+        
+        RoleReader roles = PermissionsApi.lookup().byPlayer(serverPlayer);
+        JoinOverride userOverrides = roles
+                .overrides()
+                .get(LTPermissions.JOIN_ACCESS, JoinOverride.DEFAULT);
+
+        if (!userOverrides.allowsJoining()) {
+            serverPlayer.connection.disconnect(userOverrides.notWhitelistedMessage());
+        }
     }
 }

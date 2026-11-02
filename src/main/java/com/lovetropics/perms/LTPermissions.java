@@ -82,7 +82,8 @@ public class LTPermissions {
 
     public static final RoleOverrideType<Boolean> MUTE = RoleOverrideType.register("mute", Codec.BOOL);
     public static final RoleOverrideType<Boolean> COMMAND_FEEDBACK = RoleOverrideType.register("command_feedback", Codec.BOOL);
-    public static final RoleOverrideType<JoinOverride> JOIN_ACCESS = RoleOverrideType.register("join_access", JoinOverride.CODEC);
+    public static final RoleOverrideType<JoinOverride> JOIN_ACCESS = RoleOverrideType.register("join_access", JoinOverride.CODEC)
+            .withChangeListener(JoinOverride::onChange);
     public static final RoleOverrideType<Boolean> WORLDEDIT_ALLOWED = RoleOverrideType.register("worldedit_allowed", Codec.BOOL);
     public static final RoleOverrideType<PermissionLevel> OP_LEVEL = RoleOverrideType.register("op_level", PermissionLevel.INT_CODEC);
 
