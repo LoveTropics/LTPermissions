@@ -55,7 +55,7 @@ public final class RoleCommand {
                         CommandSourceStack source = ctx.getSource();
                         Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
-                        return updateRoles(source, targets, roleName, PlayerRoleHolder::add, "'%s' assigned to %s players");
+                        return updateRoles(source, targets, roleName, PlayerRoleHolder::add, "'%s' assigned to %s", "'%s' assigned to %s players");
                     })
                 )))
                 .then(literal("remove")
@@ -65,7 +65,7 @@ public final class RoleCommand {
                         CommandSourceStack source = ctx.getSource();
                         Collection<NameAndId> targets = GameProfileArgument.getGameProfiles(ctx, "targets");
                         String roleName = StringArgumentType.getString(ctx, "role");
-                        return updateRoles(source, targets, roleName, PlayerRoleHolder::remove, "'%s' removed from %s players");
+                        return updateRoles(source, targets, roleName, PlayerRoleHolder::remove, "'%s' removed from %s", "'%s' removed from %s players");
                     })
                 )))
                 .then(literal("list")
@@ -90,22 +90,31 @@ public final class RoleCommand {
     }
     // @formatter:on
 
-    private static int updateRoles(CommandSourceStack source, Collection<NameAndId> players, String roleName, BiPredicate<PlayerRoleHolder, Role> apply, String success) throws CommandSyntaxException {
+    private static int updateRoles(CommandSourceStack source, Collection<NameAndId> players, String roleName, BiPredicate<PlayerRoleHolder, Role> apply, String singleSuccess, String multipleSuccess) throws CommandSyntaxException {
         Role role = getAssignableRole(roleName);
         requireHasPower(source, role);
 
         PlayerRoleManager roleManager = PlayerRoleManager.get();
 
         int count = 0;
+        String firstPlayer = null;
         for (NameAndId player : players) {
             boolean applied = roleManager.updateRoles(player.id(), roles -> apply.test(roles, role));
             if (applied) {
                 count++;
+                if (firstPlayer == null) {
+                    firstPlayer = player.name();
+                }
             }
         }
 
-        int finalCount = count;
-        source.sendSuccess(() -> Component.translatable(success, roleName, finalCount), true);
+        if (count == 1) {
+            Component firstPlayerName = Component.literal(firstPlayer);
+            source.sendSuccess(() -> Component.translatable(singleSuccess, roleName, firstPlayerName), true);
+        } else {
+            int finalCount = count;
+            source.sendSuccess(() -> Component.translatable(multipleSuccess, roleName, finalCount), true);
+        }
 
         return Command.SINGLE_SUCCESS;
     }
