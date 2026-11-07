@@ -2,6 +2,7 @@ package com.lovetropics.perms.store.db;
 
 import com.lovetropics.perms.store.PackedRoles;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
@@ -33,6 +34,10 @@ public final class PlayerRoleDatabase implements Closeable {
     }
 
     public Optional<PackedRoles> tryLoad(UUID uuid) {
+        // TODO: ???
+        if (uuid.version() == 3) {
+            return Optional.empty();
+        }
         try {
             ByteBuffer bytes = binary.get(uuid);
             if (bytes != null) {
